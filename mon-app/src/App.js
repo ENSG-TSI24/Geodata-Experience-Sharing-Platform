@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import './App.css';
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd"
+
 
 function MyButtons() {
   return (
@@ -53,16 +55,16 @@ function AboutPage() {
 }
 
 
+
 function TextAnnotator() {
+  //variable global
   const [text, setText] = useState("");
   const [submittedTexts, setSubmittedTexts] = useState([]);
-  const [annotations, setAnnotations] = useState({});
-  const [globalAnnotations, setGlobalAnnotations] = useState({});
+  const [globalAnnotations, setGlobalAnnotations] = useState([]);
   const [selectedText, setSelectedText] = useState("");
   const [annotationValue, setAnnotationValue] = useState("");
-  const [hoveredText, setHoveredText] = useState(null); // Gère le texte survolé
 
-  // Mise à jour du champ de texte
+  
   const handleChange = (event) => {
     setText(event.target.value);
   };
@@ -72,89 +74,80 @@ function TextAnnotator() {
     event.preventDefault();
     if (text.trim() !== "") {
       setSubmittedTexts((prevTexts) => [...prevTexts, text]);
-      setText(""); // Réinitialiser le champ de saisie
+      setText(""); 
     }
   };
 
-  // Récupération du texte sélectionné
+  // Sélection du texte pour annotation
   const handleMouseUp = () => {
     const selected = window.getSelection().toString().trim();
-    if (selected && !globalAnnotations[selected]) {
+    if (selected && !globalAnnotations.some((a) => a.text === selected)) {
       setSelectedText(selected);
       setAnnotationValue("");
     }
   };
 
-  // Soumission de l'annotation
+  // Ajout d'une annotation
   const handleAnnotationSubmit = () => {
     if (selectedText) {
-      const updatedAnnotations = { ...annotations, [selectedText]: annotationValue };
-      const updatedGlobalAnnotations = { ...globalAnnotations, [selectedText]: annotationValue };
-
-      setAnnotations(updatedAnnotations);
-      setGlobalAnnotations(updatedGlobalAnnotations);
-      setSelectedText(""); // Réinitialiser la sélection
-      setAnnotationValue(""); // Réinitialiser l'annotation
+      const newAnnotation = { id: Date.now().toString(), text: selectedText, annotation: annotationValue };
+      setGlobalAnnotations((prev) => [...prev, newAnnotation]);
+      setSelectedText(""); // Réinitialisation
+      setAnnotationValue("");
     }
   };
 
-  // Fonction pour surligner le texte annoté
-  const highlightText = (line) => {
-    let result = [];
+  // Gestion du déplacement des annotations (tableau)
+  const onDragEnd = (result) => {
+    if (!result.destination) return;
+
+    const newList = Array.from(globalAnnotations);
+    const [movedItem] = newList.splice(result.source.index, 1);
+    newList.splice(result.destination.index, 0, movedItem);
+
+    setGlobalAnnotations(newList);
+  };
+
+  // Fonction pour surligner les parties annotées
+  const highlightAnnotatedText = (text) => {
+    if (!globalAnnotations.length) return text;
+
+    let highlightedText = [];
     let lastIndex = 0;
 
-    Object.keys(globalAnnotations).forEach((annotatedText) => {
-      let index = line.indexOf(annotatedText);
-      if (index !== -1) {
-        // Ajouter le texte avant l'annotation
-        if (index > lastIndex) {
-          result.push(line.substring(lastIndex, index));
+    globalAnnotations.forEach((annotation, index) => {
+      const pos = text.indexOf(annotation.text);
+      if (pos !== -1) {
+        // Ajouter le texte normal avant l'annotation
+        if (pos > lastIndex) {
+          highlightedText.push(text.substring(lastIndex, pos));
         }
-        // Ajouter le texte annoté avec le style
-        result.push(
+
+        // Ajouter le texte annoté surligné
+        highlightedText.push(
           <span
             key={index}
             style={{
               backgroundColor: "yellow",
               cursor: "pointer",
               position: "relative",
-              padding: "2px",
             }}
-            onMouseEnter={() => setHoveredText(annotatedText)}
-            onMouseLeave={() => setHoveredText(null)}
+            title={annotation.annotation} // Pop-up au survol
           >
-            {annotatedText}
-            {/* Affichage du pop-up (tooltip) */}
-            {hoveredText === annotatedText && (
-              <span
-                style={{
-                  position: "absolute",
-                  bottom: "25px",
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  backgroundColor: "black",
-                  color: "white",
-                  padding: "5px",
-                  borderRadius: "5px",
-                  whiteSpace: "nowrap",
-                  zIndex: 1000,
-                }}
-              >
-                {globalAnnotations[annotatedText]}
-              </span>
-            )}
+            {annotation.text}
           </span>
         );
-        lastIndex = index + annotatedText.length;
+
+        lastIndex = pos + annotation.text.length;
       }
     });
 
     // Ajouter le reste du texte après la dernière annotation
-    if (lastIndex < line.length) {
-      result.push(line.substring(lastIndex));
+    if (lastIndex < text.length) {
+      highlightedText.push(text.substring(lastIndex));
     }
 
-    return result.length > 0 ? result : line;
+    return highlightedText;
   };
 
   return (
@@ -176,7 +169,7 @@ function TextAnnotator() {
         <div onMouseUp={handleMouseUp} style={{ cursor: "text" }}>
           {submittedTexts.map((line, index) => (
             <p key={index} style={{ userSelect: "text" }}>
-              {highlightText(line)}
+              {highlightAnnotatedText(line)}
             </p>
           ))}
         </div>
@@ -197,24 +190,57 @@ function TextAnnotator() {
         </div>
       )}
 
-      {/* Affichage des annotations */}
-      {Object.keys(globalAnnotations).length > 0 && (
+      {/* Tableau interactif des annotations */}
+      {globalAnnotations.length > 0 && (
         <div style={{ marginTop: "20px" }}>
           <h3>📌 Annotations enregistrées :</h3>
-          <ul>
-            {Object.entries(globalAnnotations).map(([text, annotation]) => (
-              <li key={text}>
-                <strong>{text} :</strong> {annotation}
-              </li>
-            ))}
-          </ul>
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="annotations">
+              {(provided) => (
+                <table
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                  style={{ width: "100%", borderCollapse: "collapse", marginTop: "20px" }}
+                >
+                  <thead>
+                    <tr style={{ backgroundColor: "#ccc" }}>
+                      <th style={{ padding: "10px", border: "1px solid #ddd" }}>#</th>
+                      <th style={{ padding: "10px", border: "1px solid #ddd" }}>Texte</th>
+                      <th style={{ padding: "10px", border: "1px solid #ddd" }}>Annotation</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {globalAnnotations.map((annotation, index) => (
+                      <Draggable key={annotation.id} draggableId={annotation.id} index={index}>
+                        {(provided) => (
+                          <tr
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            style={{
+                              cursor: "grab",
+                              backgroundColor: "#f9f9f9",
+                              ...provided.draggableProps.style,
+                            }}
+                          >
+                            <td style={{ padding: "10px", border: "1px solid #ddd" }}>{index + 1}</td>
+                            <td style={{ padding: "10px", border: "1px solid #ddd" }}>{annotation.text}</td>
+                            <td style={{ padding: "10px", border: "1px solid #ddd" }}>{annotation.annotation}</td>
+                          </tr>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </tbody>
+                </table>
+              )}
+            </Droppable>
+          </DragDropContext>
         </div>
       )}
     </div>
   );
 }
-
-
 
 function AdminPanel({ username }) {
   return (
