@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import './App.css';
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd"
+
 import { MapContainer, TileLayer, Marker, Popup , useMapEvents} from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -100,11 +100,12 @@ function MapAnnotator() {
       {
         nom: markerData.title,
         annotations: [
-          { texte: "nom", note: markerData.title },
-          { texte: "Coordonnées", note: `(${newMarker.lat}, ${newMarker.lng})` },
+          { texte: "nom", note: markerData.title, parent: null },
+          { texte: "Coordonnées", note: `(${newMarker.lat}, ${newMarker.lng})`, parent: null },
         ],
       },
     ]);
+    
 
     setShowModal(false);
     setMarkerData({ title: "", description: "" });
@@ -138,20 +139,32 @@ function MapAnnotator() {
   };
 
   const handleTextSelection = (markerTitle) => {
-    const selection = window.getSelection().toString().trim();
-    if (selection) {
-      const annotationText = prompt(`Ajoutez une annotation pour : "${selection}"`);
-      if (annotationText) {
-        setAnnotations((prev) =>
-          prev.map((entry) =>
-            entry.nom === markerTitle
-              ? { ...entry, annotations: [...entry.annotations, { texte: selection, note: annotationText }] }
-              : entry
-          )
-        );
-      }
+  const selection = window.getSelection().toString().trim();
+  if (selection) {
+    const annotationText = prompt(`Ajoutez une annotation pour : "${selection}"`);
+    if (annotationText) {
+      const parentAnnotation = prompt(`Cette annotation dépend-elle d'une autre ? (Laisser vide si non)`);
+
+      setAnnotations((prev) =>
+        prev.map((entry) =>
+          entry.nom === markerTitle
+            ? {
+                ...entry,
+                annotations: [
+                  ...entry.annotations,
+                  {
+                    texte: selection,
+                    note: annotationText,
+                    parent: parentAnnotation || null, 
+                  },
+                ],
+              }
+            : entry
+        )
+      );
     }
-  };
+  }
+};
 
   const handleDeleteMarker = (markerTitle) => {
     // Demande de confirmation pour la suppression du marqueur
@@ -232,35 +245,48 @@ function MapAnnotator() {
         </div>
       )}
 
-      <h2>Dictionnaire d'annotations</h2>
-      <table border="1" style={{ width: "100%", marginTop: "20px", borderCollapse: "collapse" }}>
-        <thead>
-          <tr>
-            <th>Nom</th>
-            <th>Annotations</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {annotations.map((entry, index) => (
-            <tr key={index}>
-              <td>{entry.nom}</td>
-              <td>
-                <ul>
-                  {entry.annotations.map((ann, i) => (
-                    <li key={i}>
-                      <strong>{ann.texte} :</strong> {ann.note}
-                    </li>
-                  ))}
-                </ul>
-              </td>
-              <td>
-                <button onClick={() => handleDeleteMarker(entry.nom)}>Supprimer</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+<h2>Dictionnaire d'annotations</h2>
+<table border="1" style={{ width: "100%", marginTop: "20px", borderCollapse: "collapse" }}>
+  <thead>
+    <tr>
+      <th>Nom</th>
+      <th>Annotations</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {annotations.map((entry, index) => (
+      <tr key={index}>
+        <td>{entry.nom}</td>
+        <td>
+          <ul>
+            {/* Afficher les annotations parentales */}
+            {entry.annotations
+              .filter((ann) => !ann.parent) // Filtrer uniquement les annotations sans parent
+              .map((ann, i) => (
+                <li key={i}>
+                  <strong>{ann.texte} :</strong> {ann.note}
+                  {/* Afficher les annotations enfants en liste imbriquée */}
+                  <ul>
+                    {entry.annotations
+                      .filter((child) => child.parent === ann.texte) // Filtrer les enfants du parent actuel
+                      .map((child, j) => (
+                        <li key={j}>
+                          ↳ <strong>{child.texte} :</strong> {child.note}
+                        </li>
+                      ))}
+                  </ul>
+                </li>
+              ))}
+          </ul>
+        </td>
+        <td>
+          <button onClick={() => handleDeleteMarker(entry.nom)}>Supprimer</button>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
 
       <style>
         {`
@@ -291,30 +317,25 @@ const modalStyle = {
   gap: "10px",
 };
 
-
 function TextAnnotator() {
-  //variable global
   const [text, setText] = useState("");
   const [submittedTexts, setSubmittedTexts] = useState([]);
   const [globalAnnotations, setGlobalAnnotations] = useState([]);
   const [selectedText, setSelectedText] = useState("");
   const [annotationValue, setAnnotationValue] = useState("");
 
-  
   const handleChange = (event) => {
     setText(event.target.value);
   };
 
-  // Soumission du texte
   const handleSubmit = (event) => {
     event.preventDefault();
     if (text.trim() !== "") {
       setSubmittedTexts((prevTexts) => [...prevTexts, text]);
-      setText(""); 
+      setText("");
     }
   };
 
-  // Sélection du texte pour annotation
   const handleMouseUp = () => {
     const selected = window.getSelection().toString().trim();
     if (selected && !globalAnnotations.some((a) => a.text === selected)) {
@@ -323,28 +344,33 @@ function TextAnnotator() {
     }
   };
 
-  // Ajout d'une annotation
   const handleAnnotationSubmit = () => {
     if (selectedText) {
-      const newAnnotation = { id: Date.now().toString(), text: selectedText, annotation: annotationValue };
+      const newAnnotation = { id: Date.now().toString(), text: selectedText, annotation: annotationValue, children: [] };
       setGlobalAnnotations((prev) => [...prev, newAnnotation]);
-      setSelectedText(""); // Réinitialisation
+      setSelectedText("");
       setAnnotationValue("");
     }
   };
 
-  // Gestion du déplacement des annotations (tableau)
-  const onDragEnd = (result) => {
-    if (!result.destination) return;
-
-    const newList = Array.from(globalAnnotations);
-    const [movedItem] = newList.splice(result.source.index, 1);
-    newList.splice(result.destination.index, 0, movedItem);
-
-    setGlobalAnnotations(newList);
+  const handleDeleteAnnotation = (id) => {
+    setGlobalAnnotations((prev) => prev.filter(annotation => annotation.id !== id));
   };
 
-  // Fonction pour surligner les parties annotées
+  const handleSetParent = (childAnnotation, parentAnnotation) => {
+    setGlobalAnnotations((prevAnnotations) => {
+      return prevAnnotations.map((annotation) => {
+        if (annotation.annotation === parentAnnotation) {
+          return { ...annotation, children: [...annotation.children, childAnnotation] };
+        }
+        if (annotation.annotation === childAnnotation) {
+          return { ...annotation, parent: parentAnnotation };
+        }
+        return annotation;
+      });
+    });
+  };
+
   const highlightAnnotatedText = (text) => {
     if (!globalAnnotations.length) return text;
 
@@ -354,31 +380,22 @@ function TextAnnotator() {
     globalAnnotations.forEach((annotation, index) => {
       const pos = text.indexOf(annotation.text);
       if (pos !== -1) {
-        // Ajouter le texte normal avant l'annotation
         if (pos > lastIndex) {
           highlightedText.push(text.substring(lastIndex, pos));
         }
-
-        // Ajouter le texte annoté surligné
         highlightedText.push(
           <span
             key={index}
-            style={{
-              backgroundColor: "yellow",
-              cursor: "pointer",
-              position: "relative",
-            }}
-            title={annotation.annotation} // Pop-up au survol
+            style={{ backgroundColor: "yellow", cursor: "pointer", position: "relative" }}
+            title={annotation.annotation}
           >
             {annotation.text}
           </span>
         );
-
         lastIndex = pos + annotation.text.length;
       }
     });
 
-    // Ajouter le reste du texte après la dernière annotation
     if (lastIndex < text.length) {
       highlightedText.push(text.substring(lastIndex));
     }
@@ -388,19 +405,11 @@ function TextAnnotator() {
 
   return (
     <div style={{ fontFamily: "Arial, sans-serif", padding: "20px" }}>
-      {/* Formulaire de texte */}
       <form onSubmit={handleSubmit} style={{ marginBottom: "20px" }}>
-        <input
-          type="text"
-          value={text}
-          onChange={handleChange}
-          placeholder="Tapez ici..."
-          style={{ padding: "5px", marginRight: "10px" }}
-        />
+        <input type="text" value={text} onChange={handleChange} placeholder="Tapez ici..." style={{ padding: "5px", marginRight: "10px" }} />
         <button type="submit">Ajouter</button>
       </form>
 
-      {/* Affichage des textes soumis avec annotations */}
       {submittedTexts.length > 0 && (
         <div onMouseUp={handleMouseUp} style={{ cursor: "text" }}>
           {submittedTexts.map((line, index) => (
@@ -411,72 +420,59 @@ function TextAnnotator() {
         </div>
       )}
 
-      {/* Formulaire d'annotation */}
       {selectedText && (
         <div style={{ marginTop: "20px" }}>
           <p>Annoter : <strong>"{selectedText}"</strong></p>
-          <input
-            type="text"
-            value={annotationValue}
-            onChange={(e) => setAnnotationValue(e.target.value)}
-            placeholder="Ajouter une annotation"
-            style={{ padding: "5px", marginRight: "10px" }}
-          />
+          <input type="text" value={annotationValue} onChange={(e) => setAnnotationValue(e.target.value)} placeholder="Ajouter une annotation" style={{ padding: "5px", marginRight: "10px" }} />
           <button onClick={handleAnnotationSubmit}>Valider</button>
         </div>
       )}
 
-      {/* Tableau interactif des annotations */}
       {globalAnnotations.length > 0 && (
         <div style={{ marginTop: "20px" }}>
           <h3>📌 Annotations enregistrées :</h3>
-          <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="annotations">
-              {(provided) => (
-                <table
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                  style={{ width: "100%", borderCollapse: "collapse", marginTop: "20px" }}
-                >
-                  <thead>
-                    <tr style={{ backgroundColor: "#ccc" }}>
-                      <th style={{ padding: "10px", border: "1px solid #ddd" }}>#</th>
-                      <th style={{ padding: "10px", border: "1px solid #ddd" }}>Texte</th>
-                      <th style={{ padding: "10px", border: "1px solid #ddd" }}>Annotation</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {globalAnnotations.map((annotation, index) => (
-                      <Draggable key={annotation.id} draggableId={annotation.id} index={index}>
-                        {(provided) => (
-                          <tr
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            style={{
-                              cursor: "grab",
-                              backgroundColor: "#f9f9f9",
-                              ...provided.draggableProps.style,
-                            }}
-                          >
-                            <td style={{ padding: "10px", border: "1px solid #ddd" }}>{index + 1}</td>
-                            <td style={{ padding: "10px", border: "1px solid #ddd" }}>{annotation.text}</td>
-                            <td style={{ padding: "10px", border: "1px solid #ddd" }}>{annotation.annotation}</td>
-                          </tr>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </tbody>
-                </table>
-              )}
-            </Droppable>
-          </DragDropContext>
+          <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "20px" }}>
+            <thead>
+              <tr style={{ backgroundColor: "#ccc" }}>
+                <th>Texte</th>
+                <th>Annotation</th>
+                <th>Est enfant de</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {globalAnnotations.map((annotation, index) => (
+                <tr key={annotation.id} style={{ backgroundColor: "#f9f9f9" }}>
+                  <td>{annotation.text}</td>
+                  <td>{annotation.annotation}</td>
+                  <td>
+                    <select onChange={(e) => handleSetParent(annotation.annotation, e.target.value)} value={annotation.parent || ""}>
+                      <option value="">Aucun</option>
+                      {globalAnnotations.map((parent) => (
+                        parent.annotation !== annotation.annotation && (
+                          <option key={parent.id} value={parent.annotation}>
+                            {parent.annotation}
+                          </option>
+                        )
+                      ))}
+                    </select>
+                  </td>
+                  <td>
+                    <button onClick={() => handleDeleteAnnotation(annotation.id)}>Supprimer</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <h3>📌 Dictionnaire des annotations :</h3>
+          <pre>{JSON.stringify(globalAnnotations, null, 2)}</pre>
         </div>
       )}
     </div>
   );
 }
+
+
 
 function AdminPanel({ username }) {
   let button;
