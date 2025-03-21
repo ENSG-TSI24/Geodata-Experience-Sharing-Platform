@@ -33,8 +33,12 @@ function App() {
   }
 
   return (
-    <div>
-      {content}
+    <div className="app-container">
+      {isLoggedIn ? (
+        <AdminPanel username={username} organization={organization} fonction={fonction} />
+      ) : (
+        <LoginForm onLogin={handleLogin} />
+      )}
     </div>
   );
 }

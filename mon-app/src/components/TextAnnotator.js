@@ -55,46 +55,44 @@ function TextAnnotator() {
   };
 
   const highlightAnnotatedText = (text) => {
-    if (!globalAnnotations.length) return text;
+    if (!globalAnnotations.length) return text
 
-    let highlightedText = [];
-    let lastIndex = 0;
+    const highlightedText = []
+    let lastIndex = 0
 
     globalAnnotations.forEach((annotation, index) => {
-      const pos = text.indexOf(annotation.text);
+      const pos = text.indexOf(annotation.text)
       if (pos !== -1) {
         if (pos > lastIndex) {
-          highlightedText.push(text.substring(lastIndex, pos));
+          highlightedText.push(text.substring(lastIndex, pos))
         }
         highlightedText.push(
-          <span
-            key={index}
-            style={{ backgroundColor: "yellow", cursor: "pointer", position: "relative" }}
-            title={annotation.annotation}
-          >
+          <span key={index} className="highlighted-text" title={annotation.annotation}>
             {annotation.text}
-          </span>
-        );
-        lastIndex = pos + annotation.text.length;
+          </span>,
+        )
+        lastIndex = pos + annotation.text.length
       }
-    });
+    })
 
     if (lastIndex < text.length) {
-      highlightedText.push(text.substring(lastIndex));
+      highlightedText.push(text.substring(lastIndex))
     }
 
-    return highlightedText;
-  };
+    return highlightedText
+  }
 
   return (
-    <div style={{ fontFamily: "Arial, sans-serif", padding: "20px" }}>
-      <form onSubmit={handleSubmit} style={{ marginBottom: "20px" }}>
-        <input type="text" value={text} onChange={handleChange} placeholder="Tapez ici..." style={{ padding: "5px", marginRight: "10px" }} />
-        <button type="submit">Ajouter</button>
+    <div className="text-annotator">
+      <form onSubmit={handleSubmit} className="text-form">
+        <input type="text" value={text} onChange={handleChange} placeholder="Type here..." className="text-input" />
+        <button type="submit" className="button button-primary">
+          Add
+        </button>
       </form>
 
       {submittedTexts.length > 0 && (
-        <div onMouseUp={handleMouseUp} style={{ cursor: "text" }}>
+        <div onMouseUp={handleMouseUp} className="text-display">
           {submittedTexts.map((line, index) => (
             <p key={index} style={{ userSelect: "text" }}>
               {highlightAnnotatedText(line)}
@@ -104,55 +102,70 @@ function TextAnnotator() {
       )}
 
       {selectedText && (
-        <div style={{ marginTop: "20px" }}>
-          <p>Annoter : <strong>"{selectedText}"</strong></p>
-          <input type="text" value={annotationValue} onChange={(e) => setAnnotationValue(e.target.value)} placeholder="Ajouter une annotation" style={{ padding: "5px", marginRight: "10px" }} />
-          <button onClick={handleAnnotationSubmit}>Valider</button>
+        <div className="annotation-form">
+          <p>
+            Annotate: <strong>"{selectedText}"</strong>
+          </p>
+          <input
+            type="text"
+            value={annotationValue}
+            onChange={(e) => setAnnotationValue(e.target.value)}
+            placeholder="Add annotation"
+            className="text-input"
+          />
+          <button onClick={handleAnnotationSubmit} className="button button-accent">
+            Submit
+          </button>
         </div>
       )}
 
       {globalAnnotations.length > 0 && (
-        <div style={{ marginTop: "20px" }}>
-          <h3>📌 Annotations enregistrées :</h3>
-          <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "20px" }}>
+        <div className="annotations-section">
+          <h3>📌 Saved Annotations:</h3>
+          <table className="annotations-table">
             <thead>
-              <tr style={{ backgroundColor: "#ccc" }}>
-                <th>Texte</th>
+              <tr>
+                <th>Text</th>
                 <th>Annotation</th>
-                <th>Est enfant de</th>
+                <th>Child of</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {globalAnnotations.map((annotation, index) => (
-                <tr key={annotation.id} style={{ backgroundColor: "#f9f9f9" }}>
+              {globalAnnotations.map((annotation) => (
+                <tr key={annotation.id}>
                   <td>{annotation.text}</td>
                   <td>{annotation.annotation}</td>
                   <td>
-                    <select onChange={(e) => handleSetParent(annotation.annotation, e.target.value)} value={annotation.parent || ""}>
-                      <option value="">Aucun</option>
-                      {globalAnnotations.map((parent) => (
-                        parent.annotation !== annotation.annotation && (
-                          <option key={parent.id} value={parent.annotation}>
-                            {parent.annotation}
-                          </option>
-                        )
-                      ))}
+                    <select
+                      onChange={(e) => handleSetParent(annotation.annotation, e.target.value)}
+                      value={annotation.parent || ""}
+                      className="select-input"
+                    >
+                      <option value="">None</option>
+                      {globalAnnotations.map(
+                        (parent) =>
+                          parent.annotation !== annotation.annotation && (
+                            <option key={parent.id} value={parent.annotation}>
+                              {parent.annotation}
+                            </option>
+                          ),
+                      )}
                     </select>
                   </td>
                   <td>
-                    <button onClick={() => handleDeleteAnnotation(annotation.id)}>Supprimer</button>
+                    <button onClick={() => handleDeleteAnnotation(annotation.id)} className="button button-secondary">
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          <h3>📌 Dictionnaire des annotations :</h3>
-          <pre>{JSON.stringify(globalAnnotations, null, 2)}</pre>
         </div>
       )}
     </div>
-  );
+  )
 }
 
-export default TextAnnotator;
+export default TextAnnotator

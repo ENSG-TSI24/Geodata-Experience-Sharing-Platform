@@ -1,38 +1,339 @@
-.App {
-  text-align: center;
+:root {
+  --primary-color: #2c3e50;
+  --secondary-color: #3498db;
+  --accent-color: #4caf50;
+  --light-gray: #f5f5f5;
+  --medium-gray: #e0e0e0;
+  --dark-gray: #333;
+  --text-color: #333;
+  --text-light: #fff;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f0f2f5;
+  color: var(--text-color);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+.app-container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+}
+
+/* Header Styles */
+.app-header {
+  background-color: var(--primary-color);
+  color: var(--text-light);
+  padding: 0.5rem 1rem;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.app-title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+/* Login Form Styles */
+.login-container {
+  display: flex;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f0f2f5;
+  padding: 1rem;
+}
+
+.login-form {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-form h2 {
+  color: var(--primary-color);
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-size: 1.8rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--dark-gray);
+}
+
+.form-group input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--medium-gray);
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  border-color: var(--secondary-color);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.login-button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--secondary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.login-button:hover {
+  background-color: #2980b9;
+}
+
+/* Admin Panel Styles */
+.admin-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.admin-content {
+  flex: 1;
+  padding: 1rem;
+}
+
+.welcome-banner {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.welcome-banner h1 {
+  margin-top: 0;
+  font-size: 1.5rem;
+  color: var(--primary-color);
+}
+
+.panel-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (min-width: 768px) {
+  .panel-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.panel {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--medium-gray);
+}
+
+.panel-title {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--primary-color);
+}
+
+/* Navigation Tabs */
+.nav-tabs {
+  display: flex;
+  background-color: var(--dark-gray);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.nav-tab {
+  padding: 0.75rem 1.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-align: center;
+}
+
+.nav-tab.active {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-bottom: 3px solid var(--secondary-color);
+}
+
+.nav-tab:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Button Styles */
+.button {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.button-primary {
+  background-color: var(--secondary-color);
   color: white;
 }
 
-.App-link {
-  color: #61dafb;
+.button-primary:hover {
+  background-color: #2980b9;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.button-secondary {
+  background-color: var(--light-gray);
+  color: var(--text-color);
 }
+
+.button-secondary:hover {
+  background-color: var(--medium-gray);
+}
+
+.button-accent {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.button-accent:hover {
+  background-color: #3d8b40;
+}
+
+.button-group {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Mode Toggle Button */
+.mode-toggle {
+  padding: 0.5rem 1rem;
+  background-color: var(--accent-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.mode-toggle:hover {
+  background-color: #3d8b40;
+}
+
+/* Text Annotator Styles */
+.text-annotator {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1rem;
+}
+
+.text-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--medium-gray);
+  border-radius: 4px;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.text-display {
+  margin-top: 1rem;
+  line-height: 1.6;
+}
+
+.annotation-form {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: var(--light-gray);
+  border-radius: 4px;
+}
+
+.annotations-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.annotations-table th,
+.annotations-table td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--medium-gray);
+}
+
+.annotations-table th {
+  background-color: var(--light-gray);
+  font-weight: 500;
+}
+
+/* Map Annotator Styles */
+.map-container {
+  height: 500px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Highlighted Text */
+.highlighted-text {
+  background-color: yellow;
+  cursor: pointer;
+  position: relative;
+}
+
+/* JSON Display */
+.json-display {
+  background-color: var(--light-gray);
+  padding: 1rem;
+  border-radius: 4px;
+  overflow: auto;
+  max-height: 300px;
+  margin-top: 1rem;
+}
+
+pre {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
