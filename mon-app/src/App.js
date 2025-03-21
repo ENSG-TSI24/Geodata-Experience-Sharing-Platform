@@ -6,7 +6,6 @@ import "leaflet/dist/leaflet.css";
 import  './components/AboutPage';
 import "./components/AboutPage";
 import AdminPanel from './components/AdminPanel';
-import './components/ClickableMap';
 import LoginForm from './components/LoginForm';
 import './components/MapAnnotator';
 import './components/MyButtons';
