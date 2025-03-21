@@ -83,7 +83,11 @@ function MapAnnotator({ globalDataset, setGlobalDataset }) {
   return (
     <div>
       <MapContainer center={[48.8566, 2.3522]} zoom={13} style={{ height: "500px", width: "100%" }}>
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <TileLayer
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+          attribution="Tiles © Esri — Esri, DeLorme, NAVTEQ"
+          maxZoom={16}
+        />
         <AddMarkerOnClick setGlobalDataset={setGlobalDataset} />
         {globalDataset.map((marker, index) => (
           <Marker key={index} position={marker.Proprietes.Position} icon={customIcon}>
