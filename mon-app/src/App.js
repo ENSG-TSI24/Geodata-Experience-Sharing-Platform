@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import './App.css';
 
-import { MapContainer, TileLayer, Marker, Popup , useMapEvents} from "react-leaflet";
+
 import "leaflet/dist/leaflet.css";
 import  './components/AboutPage';
 import "./components/AboutPage";
@@ -14,16 +14,21 @@ import './components/TextAnnotator';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState(""); 
+  const [username, setUsername] = useState("");
+  const [organization, setOrganization] = useState("");
+  const [fonction, setFonction] = useState("");
+
   let content;
 
-  const handleLogin = (name) => {
+  const handleLogin = (name,orga,job) => {
     setIsLoggedIn(true);
-    setUsername(name); 
+    setUsername(name);
+    setOrganization(orga);
+    setFonction(job); 
   };
 
   if (isLoggedIn) {
-    content = <AdminPanel username={username} />; 
+    content = <AdminPanel username={username} organization={organization} fonction={fonction}/>; 
   } else {
     content = <LoginForm onLogin={handleLogin} />; 
   }

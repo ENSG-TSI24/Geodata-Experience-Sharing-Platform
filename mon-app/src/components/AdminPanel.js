@@ -5,12 +5,12 @@ import MyButtons from "./MyButtons";
 import AboutPage from "./AboutPage";
 
 
-function AdminPanel({ username }) {
+function AdminPanel({ username , organization , fonction }) {
     const [isMap, setIsMap] = useState(false);
   
     return (
       <div>
-        <h1>Bienvenue dans mon appli, {username.trim()}</h1>
+        <h1>Bienvenue dans mon appli, {username.trim()}, de {organization.trim()} en position {fonction.trim()} </h1>
         <AboutPage />
         <MyButtons />
         <button onClick={() => setIsMap(!isMap)}>
