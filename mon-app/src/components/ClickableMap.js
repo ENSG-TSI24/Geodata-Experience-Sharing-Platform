@@ -1,4 +1,4 @@
-import React from "react";
+
 import { useMapEvents } from "react-leaflet"; // Import useMapEvents
 
 function ClickableMap({ addMarker }) {

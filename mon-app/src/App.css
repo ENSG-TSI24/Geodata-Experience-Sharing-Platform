@@ -36,3 +36,34 @@
     transform: rotate(360deg);
   }
 }
+
+/* App.css */
+.adresse {
+  background-color: lightblue;
+}
+
+.date {
+  background-color: lightgreen;
+}
+
+.problème {
+  background-color: lightcoral;
+}
+
+.solution {
+  background-color: lightyellow;
+}
+
+/* Pop-up */
+span:hover::after {
+  content: attr(class);
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 5px;
+  border-radius: 3px;
+  font-size: 12px;
+  top: -25px;
+  left: 0;
+  white-space: nowrap;
+}
