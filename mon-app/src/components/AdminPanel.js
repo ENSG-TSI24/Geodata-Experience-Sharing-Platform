@@ -19,7 +19,7 @@ function AdminPanel({ full_name, organization, fonction }) {
       
       {/* Passer globalDataset et setGlobalDataset à MapAnnotator */}
       {isMap ? (
-        <MapAnnotator globalDataset={globalDataset} setGlobalDataset={setGlobalDataset} />
+        <MapAnnotator globalDataset={globalDataset} setGlobalDataset={setGlobalDataset} userFullName={full_name} />
       ) : (
         <TextAnnotator />
       )}

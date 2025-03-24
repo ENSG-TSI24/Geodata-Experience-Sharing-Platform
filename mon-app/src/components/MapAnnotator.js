@@ -16,6 +16,27 @@ const propertyOptions = ["Catégorie_Données","Zone_Localisation","Mode_Acquisi
    "Solution_SIG", "Systeme_de_coordonnees","Format_Fichier","Droits_usage","Date", "Source",
    "Problème","Date_création","Date_modification"];
 
+const handleStoreMetadata = async (marker) => {
+  try {
+    const response = await fetch('/api/data/store-metadata', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        data: {
+          Title: marker.Title,
+          ...marker.Proprietes,
+          Position: `${marker.Proprietes.Position.lat},${marker.Proprietes.Position.lng}`
+        },
+        userFullName: props.userFullName 
+      })
+    });
+    const result = await response.json();
+    console.log('Metadata stored:', result);
+  } catch (error) {
+    console.error('Error storing metadata:', error);
+  }
+};
+
 function AddMarkerOnClick({ setGlobalDataset }) {
   useMapEvents({
     click(e) {
@@ -121,6 +142,10 @@ function MapAnnotator({ globalDataset, setGlobalDataset }) {
                   ))}
                 </select>
               )}
+              <button 
+                onClick={() => handleStoreMetadata(marker)}
+                style={{ marginTop: '10px', padding: '5px 10px' }}>Stocker
+              </button>
             </Popup>
           </Marker>
         ))}
