@@ -17,7 +17,7 @@ function AdminPanel({ full_name, organization, fonction }) {
         {isMap ? "Mode Texte" : "Mode Carte"}
       </button>
       
-      {/* Passer globalDataset et setGlobalDataset à MapAnnotator */}
+      {/* Passer globalDataset et setGlobalDataset à MapAnnotator ainsi que nom*/}
       {isMap ? (
         <MapAnnotator globalDataset={globalDataset} setGlobalDataset={setGlobalDataset} userFullName={full_name} />
       ) : (

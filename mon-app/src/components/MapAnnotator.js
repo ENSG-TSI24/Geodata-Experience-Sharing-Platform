@@ -16,26 +16,6 @@ const propertyOptions = ["Catégorie_Données","Zone_Localisation","Mode_Acquisi
    "Solution_SIG", "Systeme_de_coordonnees","Format_Fichier","Droits_usage","Date", "Source",
    "Problème","Date_création","Date_modification"];
 
-const handleStoreMetadata = async (marker) => {
-  try {
-    const response = await fetch('/api/data/store-metadata', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        data: {
-          Title: marker.Title,
-          ...marker.Proprietes,
-          Position: `${marker.Proprietes.Position.lat},${marker.Proprietes.Position.lng}`
-        },
-        userFullName: props.userFullName 
-      })
-    });
-    const result = await response.json();
-    console.log('Metadata stored:', result);
-  } catch (error) {
-    console.error('Error storing metadata:', error);
-  }
-};
 
 function AddMarkerOnClick({ setGlobalDataset }) {
   useMapEvents({
@@ -57,7 +37,7 @@ function AddMarkerOnClick({ setGlobalDataset }) {
   return null;
 }
 
-function MapAnnotator({ globalDataset, setGlobalDataset }) {
+function MapAnnotator({ globalDataset, setGlobalDataset, userFullName}) {
   const [selectedText, setSelectedText] = useState("");
   const [activeMarkerIndex, setActiveMarkerIndex] = useState(null);
 
@@ -102,6 +82,28 @@ function MapAnnotator({ globalDataset, setGlobalDataset }) {
       })
     );
   };
+
+  const handleStoreMetadata = async (marker) => {
+    try {
+      const response = await fetch('/api/data/store-metadata', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          data: {
+            Title: marker.Title,
+            ...marker.Proprietes,
+            Position: `${marker.Proprietes.Position.lat},${marker.Proprietes.Position.lng}`
+          },
+          userFullName: userFullName 
+        })
+      });
+      const result = await response.json();
+      console.log('Metadata stored:', result);
+    } catch (error) {
+      console.error('Error storing metadata:', error);
+    }
+  };
+  
 
   return (
     <div>
