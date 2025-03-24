@@ -1,31 +1,29 @@
-// server.js
 require("dotenv").config();
 const express = require("express");
 const path = require("path");
+const cors = require("cors");
+const userRoutes = require("./routes/userRoutes");
+const dataRoutes = require("./routes/dataRoutes");
 
 const app = express();
 
-app.use(express.static(path.join(__dirname, "../build")));
+// Middleware
+app.use(cors());
+app.use(express.json());
 
-// Route pour l'API, si tu en as besoin
-app.get("/api/test", (req, res) => {
-  res.json({ message: "Ceci est une route de test" });
-});
+// path to build
+app.use(express.static(path.join(__dirname, "../../build")));
+
+// Routes API
+app.use("/api/users", userRoutes);
+app.use("/api/data", dataRoutes);
+
+// path to React application
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "mon-app/build", "index.html"));
+  res.sendFile(path.join(__dirname, "../../build", "index.html"));
 });
-
-// Prévoir une route pour lister les métadonnées + requete qui va avec
-
-// route lors du clic sur détail d'une métadonnée 
-
-// route lors de l'export d'une métadonnée 
-
-// route pour commenter sur une métadonnée 
-
-// route pour créer une métadonnée 
-
-// Démarrer le serveur
+ 
+// Start le server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Serveur en cours d'exécution sur le port ${PORT}`);
