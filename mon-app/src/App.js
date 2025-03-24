@@ -13,7 +13,7 @@ import './components/TextAnnotator';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState("");
+  const [full_name, setfull_name] = useState("");
   const [organization, setOrganization] = useState("");
   const [fonction, setFonction] = useState("");
 
@@ -21,13 +21,13 @@ function App() {
 
   const handleLogin = (name,orga,job) => {
     setIsLoggedIn(true);
-    setUsername(name);
+    setfull_name(name);
     setOrganization(orga);
     setFonction(job); 
   };
 
   if (isLoggedIn) {
-    content = <AdminPanel username={username} organization={organization} fonction={fonction}/>; 
+    content = <AdminPanel full_name={full_name} organization={organization} fonction={fonction}/>; 
   } else {
     content = <LoginForm onLogin={handleLogin} />; 
   }

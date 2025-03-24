@@ -12,13 +12,15 @@ const customIcon = new L.Icon({
   shadowSize: [41, 41],
 });
 
-const propertyOptions = ["adresse", "date", "problème", "solution"];
+const propertyOptions = ["Catégorie_Données","Zone_Localisation","Mode_Acquisition","Résolution_Spatiale",
+   "Solution_SIG", "Systeme_de_coordonnees","Format_Fichier","Droits_usage","Date", 
+   "Problème","Date_création","Date_modification"];
 
 function AddMarkerOnClick({ setGlobalDataset }) {
   useMapEvents({
     click(e) {
-      const title = prompt("Nom du jeu de données:");
-      const description = prompt("Description du jeu de données:");
+      const title = prompt("Saisir le nom du jeu de données:");
+      const description = prompt("Fournir une description du jeu de données, puis Annoter:");
       if (title && description) {
         const newMarker = {
           Title: title,

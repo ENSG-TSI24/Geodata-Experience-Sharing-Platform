@@ -1,14 +1,14 @@
 import React, { useState } from 'react'; // Import useState
 
 function LoginForm({ onLogin }) {
-  const [username, setUsername] = useState("");
+  const [full_name, setfull_name] = useState("");
   const [organization, setOrganization] = useState("");
   const [fonction, setFonction] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (username.trim() && organization.trim()) {
-      onLogin(username, organization, fonction); 
+    if (full_name.trim() && organization.trim()) {
+      onLogin(full_name, organization, fonction); 
     }
   };
 
@@ -17,16 +17,16 @@ function LoginForm({ onLogin }) {
       <form onSubmit={handleSubmit}>
         <h2>Login</h2>
         <div>
-          <label>Username</label>
+          <label>Votre Nom et Prénom</label>
           <input
             type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            value={full_name}
+            onChange={(e) => setfull_name(e.target.value)}
             required
           />
         </div>
         <div>
-          <label>Organization</label>
+          <label>Votre Organization</label>
           <input
             type="text"
             value={organization}
@@ -35,7 +35,7 @@ function LoginForm({ onLogin }) {
           />
         </div>
         <div>
-          <label>Job</label>
+          <label>Votre Fonction</label>
           <input
             type="text"
             value={fonction}
