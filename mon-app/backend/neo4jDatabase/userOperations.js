@@ -32,4 +32,4 @@ async function incrementUserMetadataCount(full_name) {
   }
 }
 
-module.exports = { createUser, incrementUserMetadataCount };
+module.exports = { createUser_and_OrganisationNodes, incrementUserMetadataCount };

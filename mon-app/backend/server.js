@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 // path to build
-app.use(express.static(path.join(__dirname, "../../build")));
+app.use(express.static(path.join(__dirname, "../build")));
 
 // Routes API
 app.use("/api/users", userRoutes);
@@ -20,7 +20,7 @@ app.use("/api/data", dataRoutes);
 
 // path to React application
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../../build", "index.html"));
+  res.sendFile(path.join(__dirname, "../build", "index.html"));
 });
  
 // Start le server
