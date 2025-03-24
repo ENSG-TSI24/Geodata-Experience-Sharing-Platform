@@ -13,7 +13,7 @@ const customIcon = new L.Icon({
 });
 
 const propertyOptions = ["Catégorie_Données","Zone_Localisation","Mode_Acquisition","Résolution_Spatiale",
-   "Solution_SIG", "Systeme_de_coordonnees","Format_Fichier","Droits_usage","Date", 
+   "Solution_SIG", "Systeme_de_coordonnees","Format_Fichier","Droits_usage","Date", "Source",
    "Problème","Date_création","Date_modification"];
 
 function AddMarkerOnClick({ setGlobalDataset }) {
