@@ -4,7 +4,6 @@ const { incrementUserMetadataCount } = require('../neo4jDatabase/userOperations'
 
 const router = express.Router();
 
-
 router.post('/store-metadata', async (req, res) => {
   try {
     const { data, userFullName } = req.body;

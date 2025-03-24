@@ -6,7 +6,7 @@ const router = express.Router();
 router.post('/login', async (req, res) => {
   try {
     const { full_name, organization, fonction } = req.body;
-    const result = await createUserNode(full_name, organization, fonction);
+    const result = await createUser_and_OrganisationNodes(full_name, organization, fonction);
     res.json(result);
   } catch (error) {
     res.status(500).json({ error: error.message });
