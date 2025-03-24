@@ -40,6 +40,8 @@ function AddMarkerOnClick({ setGlobalDataset }) {
 function MapAnnotator({ globalDataset, setGlobalDataset, userFullName}) {
   const [selectedText, setSelectedText] = useState("");
   const [activeMarkerIndex, setActiveMarkerIndex] = useState(null);
+  const [storageStatus, setStorageStatus] = useState({ loading: false, error: null, success: false });
+
 
   const handleTextSelection = (index) => {
     const selection = window.getSelection().toString().trim();
@@ -85,6 +87,8 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName}) {
 
   const handleStoreMetadata = async (marker) => {
     try {
+
+      console.log('Debut du stockage...', { marker, userFullName });
       const response = await fetch('/api/data/store-metadata', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -97,10 +101,19 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName}) {
           userFullName: userFullName 
         })
       });
+
+      console.log('Réponse du serveur reçue', response);
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
       const result = await response.json();
-      console.log('Metadata stored:', result);
+      
+      console.log('Metadata stored well:', result);
+      setStorageStatus({ loading: false, error: null, success: true });
+      setTimeout(() => setStorageStatus({ loading: false, error: null, success: false }), 3000);
     } catch (error) {
       console.error('Error storing metadata:', error);
+      setStorageStatus({ loading: false, error: error.message, success: false });
     }
   };
   
@@ -146,9 +159,23 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName}) {
               )}
               <button 
                 onClick={() => handleStoreMetadata(marker)}
-                style={{ marginTop: '10px', padding: '5px 10px' }}>Stocker
+                style={{ marginTop: '10px', padding: '5px 10px' }}
+                disabled={storageStatus.loading}>
+                  {storageStatus.loading ? 'Stockage en cours...' : 'Stocker'}
               </button>
-            </Popup>
+
+              {storageStatus.error && (
+                <div style={{ color: 'red', marginTop: '10px' }}>
+                  Erreur: {storageStatus.error}
+                </div>
+              )}
+
+        {storageStatus.success && (
+          <div style={{ color: 'green', marginTop: '10px' }}>
+            Données stockées avec succès!
+          </div>
+        )}
+      </Popup>
           </Marker>
         ))}
       </MapContainer>

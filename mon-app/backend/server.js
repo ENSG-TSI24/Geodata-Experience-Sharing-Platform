@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const path = require("path");
+
 const cors = require("cors");
 const userRoutes = require("./routes/userRoutes");
 const dataRoutes = require("./routes/dataRoutes");
@@ -10,6 +11,8 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+app.use(express.urlencoded({ extended: true }));
 
 // path to build
 app.use(express.static(path.join(__dirname, "../build")));
