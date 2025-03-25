@@ -1,40 +1,72 @@
-import { useState } from 'react';
-import './App.css';
-
-
+import { useState, useEffect } from "react";
+import "./App.css";
 import "leaflet/dist/leaflet.css";
-import  './components/AboutPage';
-import "./components/AboutPage";
-import AdminPanel from './components/AdminPanel';
-import LoginForm from './components/LoginForm';
-import './components/MapAnnotator';
-import './components/MyButtons';
-import './components/TextAnnotator';
+import AdminPanel from "./components/AdminPanel";
+import LoginForm from "./components/LoginForm";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [full_name, setfull_name] = useState("");
+  const [full_name, setFullName] = useState("");
   const [organization, setOrganization] = useState("");
   const [fonction, setFonction] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  let content;
+  // Vérification de l'authentification au montage
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      try {
+        const userData = JSON.parse(savedUser);
+        setFullName(userData.full_name);
+        setOrganization(userData.organization);
+        setFonction(userData.fonction || "");
+        setIsLoggedIn(true);
+      } catch (error) {
+        console.error("Erreur de parsing des données utilisateur:", error);
+      }
+    }
+    setIsLoading(false);
+  }, []);
 
-  const handleLogin = (name,orga,job) => {
+  const handleLogin = (name, orga, job) => {
+    // Sauvegarde dans localStorage
+    const userData = { 
+      full_name: name, 
+      organization: orga, 
+      fonction: job 
+    };
+    localStorage.setItem("user", JSON.stringify(userData));
+
     setIsLoggedIn(true);
-    setfull_name(name);
+    setFullName(name);
     setOrganization(orga);
-    setFonction(job); 
+    setFonction(job);
   };
 
-  if (isLoggedIn) {
-    content = <AdminPanel full_name={full_name} organization={organization} fonction={fonction}/>; 
-  } else {
-    content = <LoginForm onLogin={handleLogin} />; 
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    setIsLoggedIn(false);
+    setFullName("");
+    setOrganization("");
+    setFonction("");
+  };
+
+  if (isLoading) {
+    return <div className="loading-screen">Chargement...</div>;
   }
 
   return (
-    <div>
-      {content}
+    <div className="app-container">
+      {isLoggedIn ? (
+        <AdminPanel 
+          full_name={full_name} 
+          organization={organization} 
+          fonction={fonction}
+          onLogout={handleLogout} 
+        />
+      ) : (
+        <LoginForm onLogin={handleLogin} />
+      )}
     </div>
   );
 }
