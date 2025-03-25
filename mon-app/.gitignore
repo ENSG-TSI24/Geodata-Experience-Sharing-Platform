@@ -5,8 +5,12 @@
 /.pnp
 .pnp.js
 
+.cache/
+.tmp/
+
 # testing
 /coverage
+
 
 # production
 /build
@@ -22,3 +26,5 @@ backend/.env
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+

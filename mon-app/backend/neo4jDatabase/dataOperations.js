@@ -1,8 +1,10 @@
 const driver = require('./driver');
+const logger = require('../utils/logger');
 
 async function createDataNode(data, userFullName) {
   const session = driver.session();
   try {
+    console.log('Création du noeud avec:', { data, userFullName });
     // Création du noeud Donnee avec annotations de liste deroulante
     const result = await session.run(
       `MATCH (u:Utilisateur {full_name: $userFullName})
@@ -17,6 +19,7 @@ async function createDataNode(data, userFullName) {
         }
       }
     );
+    console.log('Résultat Neo4j:', result.records);
 
     // Création des relations entre noeuds et organismes si la source est renseignéee
     if (data.Source) {
@@ -29,7 +32,10 @@ async function createDataNode(data, userFullName) {
     }
 
     return result.records[0].get('d');
-  } finally {
+  } catch (error) {
+    console.error('Erreur Neo4j:', error);
+    throw new Error('Échec de la création dans la base de données');
+  } finally  {
     await session.close();
   }
 }
