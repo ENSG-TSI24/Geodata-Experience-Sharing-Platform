@@ -5,36 +5,32 @@ const driver = require('./driver');
 async function createUser_and_OrganisationNodes(full_name, organization, fonction) {
   const session = driver.session();
   try {
-    if (!full_name || !organization) {
-      throw new Error('Nom complet et organisation sont obligatoires');
-    }
+    
+    console.log('Tentative de création pour:', { full_name, organization, fonction });
     const result = await session.run(
-      `MERGE (u:Utilisateur {full_name: $full_name, fonction: $fonction})
+      `MERGE (u:Utilisateur {full_name: $full_name})
+       ON CREATE SET u.fonction = $fonction,
+                    u.nombre_metadonnees = 0,
+                    u.date_creation = datetime()
        MERGE (o:Organisme {name: $organization})
        MERGE (u)-[:APPARTIENT_A]->(o)
-       ON CREATE SET u.nombre_metadonnees = 0
        RETURN u, o`,
       { full_name, organization, fonction : fonction || null  }
     );
+
+    console.log('Résultat Neo4j:', result);
     if (result.records.length === 0) {
       throw new Error('Échec de création utilisateur');
     }
-    logger.info('Utilisateur créé', {
-      user: result.records[0].get('u').properties,
-      org: result.records[0].get('o').properties
-    });
-
+    
     return {
       user: result.records[0].get('u'),
       organization: result.records[0].get('o')
     };
 
   } catch (error) {
-    logger.error('Erreur createUser', {
-      error: error.message,
-      params: { full_name, organization, fonction }
-    });
-    throw new Error(`Erreur utilisateur: ${error.message}`);
+    console.error('ERREUR CRITIQUE:', error); // Log visible
+    throw new Error(`Échec création: ${error.message}`);
   } finally {
     await session.close();
   }

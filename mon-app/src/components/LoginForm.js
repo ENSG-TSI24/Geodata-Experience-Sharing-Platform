@@ -5,12 +5,28 @@ function LoginForm({ onLogin }) {
   const [organization, setOrganization] = useState("");
   const [fonction, setFonction] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    try {
     if (full_name.trim() && organization.trim()) {
-      onLogin(full_name, organization, fonction); 
+      const response = await fetch('/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ full_name, organization, fonction })
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erreur serveur');
+      }
+
+      const result = await response.json();
+      onLogin(full_name, organization, fonction);
     }
-  };
+  } catch (error) {
+    console.error('Échec login:', error);
+    alert(`Erreur: ${error.message}`); 
+  }
+};
 
   return (
     <div>
