@@ -1,5 +1,5 @@
 const driver = require('./driver');
-const logger = require('../utils/logger');
+// const logger = require('../utils/logger');
 
 // implement of our Neo4J architecture, the user and organisation he belongs to into nodes along with relationship
 async function createUser_and_OrganisationNodes(full_name, organization, fonction) {

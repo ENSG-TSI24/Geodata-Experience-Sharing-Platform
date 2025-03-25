@@ -1,5 +1,5 @@
 const driver = require('./driver');
-const logger = require('../utils/logger');
+//const logger = require('../utils/logger');
 
 async function createDataNode(data, userFullName) {
   const session = driver.session();
