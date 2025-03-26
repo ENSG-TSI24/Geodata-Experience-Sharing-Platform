@@ -1690,3 +1690,17 @@ body.dark .private-card {
     gap: 0.5rem;
   }
 }
+
+.mode-reinit {
+  padding: 0.5rem 1rem;
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
