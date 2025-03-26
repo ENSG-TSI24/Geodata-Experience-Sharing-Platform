@@ -11,13 +11,14 @@ const TextAnnotator = () => {
   const [annotations, setAnnotations] = useState([]);
   const textAreaRef = useRef(null);
 
-  const options = ['adresse', 'date', 'problème', 'solution'];
-  const colors = {
-    adresse: 'lightblue',
-    date: 'lightgreen',
-    problème: 'tomato',
-    solution: 'gold',
-  };
+  const categories = [
+    { id: "Catégorie_Données", name: "Catégorie Données", color: "#3498db" },
+    { id: "Zone_Localisation", name: "Zone Localisation", color: "#2ecc71" },
+    { id: "Mode_Acquisition", name: "Mode Acquisition", color: "#e74c3c" },
+    { id: "Résolution_Spatiale", name: "Résolution Spatiale", color: "#f39c12" },
+    { id: "Solution_SIG", name: "Solution SIG", color: "#9b59b6" },
+    { id: "Systeme_de_coordonnees", name: "Système coordonnées", color: "#1abc9c" }
+  ];
 
   const handleChange = (event) => {
     setText(event.target.value);
@@ -60,9 +61,12 @@ const TextAnnotator = () => {
     }
   };
 
-  const handleApplyAnnotation = (option) => {
-    if (selectedText && option) {
-      setAnnotations([...annotations, { start: selectionRange.start, end: selectionRange.end, label: option }]);
+  const handleApplyAnnotation = (category) => {
+    if (selectedText && category) {
+      setAnnotations([
+        ...annotations,
+        { start: selectionRange.start, end: selectionRange.end, label: category.id }
+      ]);
       setShowDropdown(false);
     }
   };
@@ -74,8 +78,9 @@ const TextAnnotator = () => {
 
     annotations.sort((a, b) => a.start - b.start).forEach(({ start, end, label }, index) => {
       annotatedText.push(text.substring(lastIndex, start));
+      const category = categories.find(c => c.id === label);
       annotatedText.push(
-        <span key={index} style={{ backgroundColor: colors[label], padding: '2px', borderRadius: '3px' }}>
+        <span key={index} style={{ backgroundColor: category.color, padding: '2px', borderRadius: '3px' }}>
           {text.substring(start, end)}
         </span>
       );
@@ -111,28 +116,29 @@ const TextAnnotator = () => {
     <div>
       <h1>Description de la métadonnée</h1>
       <div className="input-group"> 
-      <input
-        type="text"
-        className='text-input'
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Entrez le titre du texte"
-      /></div>
-       <div className="input-group">
-      <textarea
-        ref={textAreaRef}
-        value={text}
-        className='text-input text-area'
-        onChange={handleInputChange}
-        onKeyDown={handleKeyDown}
-        onMouseUp={handleTextSelection}
-        placeholder="Tapez votre texte ici..."
-        rows="5"
-        cols="50"
-      />
+        <input
+          type="text"
+          className="text-input"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Entrez le titre du texte"
+        />
       </div>
-      <button className='mode-toggle' onClick={handlePublish}>Publier</button>
-      <button className='mode-reinit' onClick={handleReset}>Réinitialiser</button>
+      <div className="input-group">
+        <textarea
+          ref={textAreaRef}
+          value={text}
+          className="text-input text-area"
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          onMouseUp={handleTextSelection}
+          placeholder="Tapez votre texte ici..."
+          rows="5"
+          cols="50"
+        />
+      </div>
+      <button className="mode-toggle" onClick={handlePublish}>Publier</button>
+      <button className="mode-reinit" onClick={handleReset}>Réinitialiser</button>
 
       {showDropdown && (
         <div
@@ -145,9 +151,13 @@ const TextAnnotator = () => {
             padding: '5px',
           }}
         >
-          {options.map((option) => (
-            <button key={option} onClick={() => handleApplyAnnotation(option)}>
-              {option}
+          {categories.map((category) => (
+            <button
+              key={category.id}
+              onClick={() => handleApplyAnnotation(category)}
+              style={{ color: category.color }}
+            >
+              {category.name}
             </button>
           ))}
         </div>
