@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 const TextAnnotator = () => {
   const [text, setText] = useState('');
@@ -9,16 +9,18 @@ const TextAnnotator = () => {
   const [selectedText, setSelectedText] = useState('');
   const [selectionRange, setSelectionRange] = useState({ start: 0, end: 0 });
   const [annotations, setAnnotations] = useState([]);
+  const [categories, setCategories] = useState([]);  // Etat pour les catégories (uniquement des ids)
   const textAreaRef = useRef(null);
 
-  const categories = [
-    { id: "Catégorie_Données", name: "Catégorie Données", color: "#3498db" },
-    { id: "Zone_Localisation", name: "Zone Localisation", color: "#2ecc71" },
-    { id: "Mode_Acquisition", name: "Mode Acquisition", color: "#e74c3c" },
-    { id: "Résolution_Spatiale", name: "Résolution Spatiale", color: "#f39c12" },
-    { id: "Solution_SIG", name: "Solution SIG", color: "#9b59b6" },
-    { id: "Systeme_de_coordonnees", name: "Système coordonnées", color: "#1abc9c" }
-  ];
+  useEffect(() => {
+    fetch('http://localhost:5000/api/listes/categories')
+      .then(response => response.json())
+      .then(data => {
+        const categoryIds = data.map(category => category.id);
+        setCategories(categoryIds);
+      })
+      .catch(error => console.error('Erreur lors de la récupération des catégories:', error));
+  }, []);
 
   const handleChange = (event) => {
     setText(event.target.value);
@@ -65,7 +67,7 @@ const TextAnnotator = () => {
     if (selectedText && category) {
       setAnnotations([
         ...annotations,
-        { start: selectionRange.start, end: selectionRange.end, label: category.id }
+        { start: selectionRange.start, end: selectionRange.end, label: category }
       ]);
       setShowDropdown(false);
     }
@@ -78,9 +80,8 @@ const TextAnnotator = () => {
 
     annotations.sort((a, b) => a.start - b.start).forEach(({ start, end, label }, index) => {
       annotatedText.push(text.substring(lastIndex, start));
-      const category = categories.find(c => c.id === label);
       annotatedText.push(
-        <span key={index} style={{ backgroundColor: category.color, padding: '2px', borderRadius: '3px' }}>
+        <span key={index} style={{ backgroundColor: '#ccc', padding: '2px', borderRadius: '3px' }}>
           {text.substring(start, end)}
         </span>
       );
@@ -151,13 +152,12 @@ const TextAnnotator = () => {
             padding: '5px',
           }}
         >
-          {categories.map((category) => (
+          {categories.map((categoryId) => (
             <button
-              key={category.id}
-              onClick={() => handleApplyAnnotation(category)}
-              style={{ color: category.color }}
+              key={categoryId}
+              onClick={() => handleApplyAnnotation(categoryId)}  // Pass the 'id' directly
             >
-              {category.name}
+              {categoryId}  {/* Affichage de l'ID */}
             </button>
           ))}
         </div>
