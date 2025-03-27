@@ -13,6 +13,7 @@ const TextAnnotator = () => {
   const [categoryColors, setCategoryColors] = useState({});
   const textAreaRef = useRef(null);
   const mirrorRef = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
     fetch('http://localhost:5000/api/listes/categories')
@@ -58,10 +59,15 @@ const TextAnnotator = () => {
     if (start !== end) {
       setSelectedText(text.substring(start, end));
       setSelectionRange({ start, end });
+      
+      // Calcul plus précis de la position du dropdown
       const rect = textarea.getBoundingClientRect();
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
+      
       setDropdownPosition({
-        top: rect.top + window.scrollY + textarea.offsetHeight,
-        left: rect.left + window.scrollX + start * 7,
+        top: rect.top + scrollTop + textarea.offsetHeight,
+        left: rect.left + scrollLeft,
       });
       setShowDropdown(true);
     }
@@ -98,7 +104,7 @@ const TextAnnotator = () => {
   };
 
   return (
-    <div>
+    <div ref={containerRef}>
       <h1>Description de la métadonnée</h1>
       <div className="input-group"> 
         <input
@@ -109,67 +115,54 @@ const TextAnnotator = () => {
           placeholder="Entrez le titre du texte"
         />
       </div>
-      <div className="input-group" style={{ position: 'relative', fontFamily: 'monospace' }}>
-        <div
-          ref={mirrorRef}
-          className="text-overlay"
-          style={{
-            position: 'absolute',
-            whiteSpace: 'pre-wrap',
-            pointerEvents: 'none',
-            color: 'transparent',
-            background: 'transparent',
-            zIndex: 1,
-            width: '100%',
-            height: '100%',
-            padding: '8px',
-            fontFamily: 'monospace',
-            fontSize: 'inherit',
-          }}
-          dangerouslySetInnerHTML={{ __html: getAnnotatedHtml() }}
-        />
+      <div 
+        className="input-group" 
+        style={{ 
+          position: 'relative', 
+          fontFamily: 'monospace',
+          lineHeight: '1.5',
+          fontSize: '14px'
+        }}
+      >
         <textarea
           ref={textAreaRef}
           value={text}
-          className="text-input text-area"
+          className="text-area" 
           onChange={handleChange}
           onMouseUp={handleTextSelection}
           placeholder="Tapez votre texte ici..."
           rows="5"
           cols="50"
-          style={{
-            position: 'relative',
-            zIndex: 2,
-            background: 'transparent',
-            color: 'black',
-            caretColor: 'black',
-            fontFamily: 'monospace',
-          }}
+        />
+        <div
+          ref={mirrorRef}
+          className="text-overlay"
+          dangerouslySetInnerHTML={{ __html: getAnnotatedHtml() }}
         />
       </div>
       <button className="mode-toggle" onClick={handlePublish}>Publier</button>
       <button className="mode-reinit" onClick={handleReset}>Réinitialiser</button>
           
       {showDropdown && (
-        <div
-          style={{
-            position: 'absolute',
-            top: dropdownPosition.top,
-            left: dropdownPosition.left,
-            backgroundColor: 'white',
-            border: '1px solid black',
-            padding: '5px',
-            zIndex: 10,
-          }}
-        >
-          {categories.map((categoryId) => (
-            <button key={categoryId} onClick={() => handleApplyAnnotation(categoryId)}>
-              {categoryId}
-            </button>
-          ))}
-        </div>
+  <div
+    className="annotation-dropdown"
+    style={{
+      top: `${dropdownPosition.top}px`,
+      left: `${dropdownPosition.left}px`,
+    }}
+  >
+    {categories.map((categoryId) => (
+      <button
+        key={categoryId}
+        className="annotation-button"
+        style={{ backgroundColor: categoryColors[categoryId] }}
+        onClick={() => handleApplyAnnotation(categoryId)}
+      >
+        {categoryId}
+      </button>
+    ))}
+  </div>
       )}
-      
 
       <div>
         <h2>Dataset Global</h2>
