@@ -9,15 +9,21 @@ const TextAnnotator = () => {
   const [selectedText, setSelectedText] = useState('');
   const [selectionRange, setSelectionRange] = useState({ start: 0, end: 0 });
   const [annotations, setAnnotations] = useState([]);
-  const [categories, setCategories] = useState([]);  // Etat pour les catégories (uniquement des ids)
+  const [categories, setCategories] = useState([]);
+  const [categoryColors, setCategoryColors] = useState({});
   const textAreaRef = useRef(null);
+  const mirrorRef = useRef(null);
 
   useEffect(() => {
     fetch('http://localhost:5000/api/listes/categories')
       .then(response => response.json())
       .then(data => {
-        const categoryIds = data.map(category => category.id);
-        setCategories(categoryIds);
+        const categoryMap = {};
+        data.forEach(category => {
+          categoryMap[category.id] = category.color || '#ffcc00';
+        });
+        setCategories(data.map(category => category.id));
+        setCategoryColors(categoryMap);
       })
       .catch(error => console.error('Erreur lors de la récupération des catégories:', error));
   }, []);
@@ -34,8 +40,7 @@ const TextAnnotator = () => {
       };
 
       annotations.forEach(({ label, start, end }) => {
-        const annotatedText = text.substring(start, end);
-        newText.Proprietees[label] = annotatedText;
+        newText.Proprietees[label] = text.substring(start, end);
       });
 
       setGlobalDataset([...globalDataset, newText]);
@@ -51,13 +56,12 @@ const TextAnnotator = () => {
     const end = textarea.selectionEnd;
 
     if (start !== end) {
-      const selected = text.substring(start, end);
-      setSelectedText(selected);
+      setSelectedText(text.substring(start, end));
       setSelectionRange({ start, end });
       const rect = textarea.getBoundingClientRect();
       setDropdownPosition({
-        top: rect.top + window.scrollY + 30,
-        left: rect.left + window.scrollX + start * 6,
+        top: rect.top + window.scrollY + textarea.offsetHeight,
+        left: rect.left + window.scrollX + start * 7,
       });
       setShowDropdown(true);
     }
@@ -65,46 +69,26 @@ const TextAnnotator = () => {
 
   const handleApplyAnnotation = (category) => {
     if (selectedText && category) {
-      setAnnotations([
-        ...annotations,
-        { start: selectionRange.start, end: selectionRange.end, label: category }
-      ]);
+      setAnnotations([...annotations, { start: selectionRange.start, end: selectionRange.end, label: category }]);
       setShowDropdown(false);
     }
   };
 
-  const getAnnotatedText = () => {
-    if (annotations.length === 0) return text;
-    let annotatedText = [];
+  const getAnnotatedHtml = () => {
+    if (annotations.length === 0) return text.replace(/\n/g, '<br/>');
+    let html = '';
     let lastIndex = 0;
 
-    annotations.sort((a, b) => a.start - b.start).forEach(({ start, end, label }, index) => {
-      annotatedText.push(text.substring(lastIndex, start));
-      annotatedText.push(
-        <span key={index} style={{ backgroundColor: '#ccc', padding: '2px', borderRadius: '3px' }}>
-          {text.substring(start, end)}
-        </span>
-      );
+    annotations.sort((a, b) => a.start - b.start).forEach(({ start, end, label }) => {
+      html += text.substring(lastIndex, start).replace(/\n/g, '<br/>');
+      html += `<span style="background-color: ${categoryColors[label]}; padding: 2px; border-radius: 3px;">`;
+      html += text.substring(start, end).replace(/\n/g, '<br/>');
+      html += '</span>';
       lastIndex = end;
     });
 
-    annotatedText.push(text.substring(lastIndex));
-    return annotatedText;
-  };
-
-  const handleKeyDown = (event) => {
-    if (event.key === '#') {
-      setShowDropdown(true);
-    }
-  };
-
-  const handleInputChange = (event) => {
-    setText(event.target.value);
-    if (event.target.value.includes('#')) {
-      setShowDropdown(true);
-    } else {
-      setShowDropdown(false);
-    }
+    html += text.substring(lastIndex).replace(/\n/g, '<br/>');
+    return html;
   };
 
   const handleReset = () => {
@@ -125,22 +109,47 @@ const TextAnnotator = () => {
           placeholder="Entrez le titre du texte"
         />
       </div>
-      <div className="input-group">
+      <div className="input-group" style={{ position: 'relative', fontFamily: 'monospace' }}>
+        <div
+          ref={mirrorRef}
+          className="text-overlay"
+          style={{
+            position: 'absolute',
+            whiteSpace: 'pre-wrap',
+            pointerEvents: 'none',
+            color: 'transparent',
+            background: 'transparent',
+            zIndex: 1,
+            width: '100%',
+            height: '100%',
+            padding: '8px',
+            fontFamily: 'monospace',
+            fontSize: 'inherit',
+          }}
+          dangerouslySetInnerHTML={{ __html: getAnnotatedHtml() }}
+        />
         <textarea
           ref={textAreaRef}
           value={text}
           className="text-input text-area"
-          onChange={handleInputChange}
-          onKeyDown={handleKeyDown}
+          onChange={handleChange}
           onMouseUp={handleTextSelection}
           placeholder="Tapez votre texte ici..."
           rows="5"
           cols="50"
+          style={{
+            position: 'relative',
+            zIndex: 2,
+            background: 'transparent',
+            color: 'black',
+            caretColor: 'black',
+            fontFamily: 'monospace',
+          }}
         />
       </div>
       <button className="mode-toggle" onClick={handlePublish}>Publier</button>
       <button className="mode-reinit" onClick={handleReset}>Réinitialiser</button>
-
+          
       {showDropdown && (
         <div
           style={{
@@ -150,23 +159,17 @@ const TextAnnotator = () => {
             backgroundColor: 'white',
             border: '1px solid black',
             padding: '5px',
+            zIndex: 10,
           }}
         >
           {categories.map((categoryId) => (
-            <button
-              key={categoryId}
-              onClick={() => handleApplyAnnotation(categoryId)}  // Pass the 'id' directly
-            >
-              {categoryId}  {/* Affichage de l'ID */}
+            <button key={categoryId} onClick={() => handleApplyAnnotation(categoryId)}>
+              {categoryId}
             </button>
           ))}
         </div>
       )}
-
-      <div>
-        <h2>Texte annoté :</h2>
-        <p>{getAnnotatedText()}</p>
-      </div>
+      
 
       <div>
         <h2>Dataset Global</h2>
