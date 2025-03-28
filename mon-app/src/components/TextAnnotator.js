@@ -13,6 +13,11 @@ const TextAnnotator = () => {
   const [categories, setCategories] = useState([]);
   const [categoryColors, setCategoryColors] = useState({});
   const [notification, setNotification] = useState(null);
+  const [storageStatus, setStorageStatus] = useState({ 
+    loading: false, 
+    error: null, 
+    success: false 
+  });
   
   const textAreaRef = useRef(null);
   const mirrorRef = useRef(null);
@@ -38,26 +43,75 @@ const TextAnnotator = () => {
     setTimeout(() => setNotification(null), 3000);
   };
 
+  const handleStoreMetadata = async (textData) => {
+    try {
+      setStorageStatus({ loading: true, error: null, success: false });
+      
+      const response = await fetch('/api/data/store-metadata', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          data: {
+            ...textData,
+            // pour convertir les annotations en propriétés
+            ...Object.fromEntries(
+              annotations.map(ann => [
+                ann.label, 
+                text.substring(ann.start, ann.end)
+              ])
+            )
+          },
+          userFullName: "currentUser" // À remplacer par le vrai user
+        })
+      });
+  
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      setStorageStatus({ loading: false, error: null, success: true });
+      setTimeout(() => setStorageStatus({ loading: false, error: null, success: false }), 3000);
+      return result;
+    } catch (error) {
+      setStorageStatus({ loading: false, error: error.message, success: false });
+      throw error;
+    }
+  };
+
   const handleChange = (event) => {
     setText(event.target.value);
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (text.trim() !== '' && title.trim() !== '') {
-      const newText = {
-        Title: title,
-        Proprietees: { description: text },
-      };
-
-      annotations.forEach(({ label, start, end }) => {
-        newText.Proprietees[label] = text.substring(start, end);
-      });
-
-      setGlobalDataset([...globalDataset, newText]);
-      setText('');
-      setTitle('');
-      setAnnotations([]);
-      showNotification("Texte publié avec succès", "success");
+      try {
+        const newText = {
+          Title: title,
+          Proprietees: { 
+            description: text,
+            // Ajouter annotations comme propriétés
+            ...Object.fromEntries(
+              annotations.map(ann => [
+                ann.label, 
+                text.substring(ann.start, ann.end)
+              ])
+            )
+          },
+        };
+  
+        // Envoyer à Neo4J
+        await handleStoreMetadata(newText);
+        
+        // Mettre à jour l'état local
+        setGlobalDataset([...globalDataset, newText]);
+        setText('');
+        setTitle('');
+        setAnnotations([]);
+        showNotification("Texte publié et stocké avec succès", "success");
+      } catch (error) {
+        showNotification(`Erreur: ${error.message}`, "error");
+      }
     }
   };
 
@@ -195,7 +249,26 @@ const TextAnnotator = () => {
       </div>
 
       <div className="action-buttons">
-        <button className="mode-toggle" onClick={handlePublish}>Publier</button>
+      <button 
+          className="mode-toggle" 
+          onClick={handlePublish}
+          disabled={storageStatus.loading}
+        >
+          {storageStatus.loading ? 'Publication en cours...' : 'Publier'}
+        </button>
+
+        {storageStatus.error && (
+          <div className="error-message">
+            Erreur: {storageStatus.error}
+          </div>
+        )}
+
+        {storageStatus.success && (
+          <div className="success-message">
+            Données stockées avec succès dans Neo4J!
+          </div>
+        )}
+        
         <button className="mode-reinit" onClick={handleReset}>Réinitialiser</button>
         
         <button
