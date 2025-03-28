@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { FiDownload, FiUpload } from "react-icons/fi";
 
 const TextAnnotator = () => {
   const [text, setText] = useState('');
@@ -11,9 +12,12 @@ const TextAnnotator = () => {
   const [annotations, setAnnotations] = useState([]);
   const [categories, setCategories] = useState([]);
   const [categoryColors, setCategoryColors] = useState({});
+  const [notification, setNotification] = useState(null);
+  
   const textAreaRef = useRef(null);
   const mirrorRef = useRef(null);
   const containerRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     fetch('http://localhost:5000/api/listes/categories')
@@ -28,6 +32,11 @@ const TextAnnotator = () => {
       })
       .catch(error => console.error('Erreur lors de la récupération des catégories:', error));
   }, []);
+
+  const showNotification = (message, type = "info") => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
 
   const handleChange = (event) => {
     setText(event.target.value);
@@ -48,6 +57,7 @@ const TextAnnotator = () => {
       setText('');
       setTitle('');
       setAnnotations([]);
+      showNotification("Texte publié avec succès", "success");
     }
   };
 
@@ -60,7 +70,6 @@ const TextAnnotator = () => {
       setSelectedText(text.substring(start, end));
       setSelectionRange({ start, end });
       
-      // Calcul plus précis de la position du dropdown
       const rect = textarea.getBoundingClientRect();
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
       const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
@@ -97,6 +106,42 @@ const TextAnnotator = () => {
     return html;
   };
 
+  const exportAnnotations = () => {
+    const dataStr = JSON.stringify(globalDataset, null, 2);
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(dataBlob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `text-annotations-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    showNotification("Annotations exportées avec succès", "success");
+  };
+
+  const importAnnotations = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const importedData = JSON.parse(event.target.result);
+        if (Array.isArray(importedData)) {
+          setGlobalDataset(importedData);
+          showNotification("Annotations importées avec succès", "success");
+        } else {
+          showNotification("Format d'annotation invalide", "error");
+        }
+      } catch (error) {
+        showNotification("Échec de l'analyse du fichier importé", "error");
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const handleReset = () => {
     setText('');
     setAnnotations([]);
@@ -106,6 +151,13 @@ const TextAnnotator = () => {
   return (
     <div ref={containerRef}>
       <h1>Description de la métadonnée</h1>
+      
+      {notification && (
+        <div className={`notification notification-${notification.type}`}>
+          {notification.message}
+        </div>
+      )}
+
       <div className="input-group"> 
         <input
           type="text"
@@ -115,6 +167,7 @@ const TextAnnotator = () => {
           placeholder="Entrez le titre du texte"
         />
       </div>
+      
       <div 
         className="input-group" 
         style={{ 
@@ -140,28 +193,56 @@ const TextAnnotator = () => {
           dangerouslySetInnerHTML={{ __html: getAnnotatedHtml() }}
         />
       </div>
-      <button className="mode-toggle" onClick={handlePublish}>Publier</button>
-      <button className="mode-reinit" onClick={handleReset}>Réinitialiser</button>
-          
+
+      <div className="action-buttons">
+        <button className="mode-toggle" onClick={handlePublish}>Publier</button>
+        <button className="mode-reinit" onClick={handleReset}>Réinitialiser</button>
+        
+        <button
+          className="button button-sm button-secondary"
+          onClick={exportAnnotations}
+          title="Exporter les annotations"
+        >
+          <FiDownload className="button-icon" />
+          <span>Exporter</span>
+        </button>
+
+        <input
+          type="file"
+          accept=".json"
+          onChange={importAnnotations}
+          ref={fileInputRef}
+          style={{ display: "none" }}
+        />
+        <button
+          className="button button-sm button-secondary"
+          onClick={() => fileInputRef.current.click()}
+          title="Importer des annotations"
+        >
+          <FiUpload className="button-icon" />
+          <span>Importer</span>
+        </button>
+      </div>
+      
       {showDropdown && (
-  <div
-    className="annotation-dropdown"
-    style={{
-      top: `${dropdownPosition.top}px`,
-      left: `${dropdownPosition.left}px`,
-    }}
-  >
-    {categories.map((categoryId) => (
-      <button
-        key={categoryId}
-        className="annotation-button"
-        style={{ backgroundColor: categoryColors[categoryId] }}
-        onClick={() => handleApplyAnnotation(categoryId)}
-      >
-        {categoryId}
-      </button>
-    ))}
-  </div>
+        <div
+          className="annotation-dropdown"
+          style={{
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
+          }}
+        >
+          {categories.map((categoryId) => (
+            <button
+              key={categoryId}
+              className="annotation-button"
+              style={{ backgroundColor: categoryColors[categoryId] }}
+              onClick={() => handleApplyAnnotation(categoryId)}
+            >
+              {categoryId}
+            </button>
+          ))}
+        </div>
       )}
 
       <div>
