@@ -1690,3 +1690,76 @@ body.dark .private-card {
     gap: 0.5rem;
   }
 }
+
+.mode-reinit {
+  padding: 0.5rem 1rem;
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.text-area {
+  width: 100%;
+  min-height: 150px;
+  padding: 8px;
+  margin: 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: inherit;
+  line-height: inherit;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  resize: vertical;
+  position: relative;
+  z-index: 2;
+  background-color: transparent;
+  color: rgba(0,0,0,0);
+  caret-color: black;
+}
+
+.text-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 8px;
+  margin: 0;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  pointer-events: none;
+  font-family: monospace;
+  font-size: inherit;
+  line-height: inherit;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow: hidden;
+  z-index: 1;
+  background-color: white;
+}
+
+.annotation-dropdown {
+  position: absolute;
+  background-color: white;
+  border: 1px solid black;
+  padding: 5px;
+  z-index: 10;
+}
+
+.annotation-button {
+  margin: 2px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  color: black;
+  font-weight: bold;
+}

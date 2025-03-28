@@ -5,6 +5,8 @@ const path = require("path");
 const cors = require("cors");
 const userRoutes = require("./routes/userRoutes");
 const dataRoutes = require("./routes/dataRoutes");
+const solutionRoutes = require ("./routes/SolutionRoutes");
+const listeRoutes = require ("./routes/ListeRoutes");
 
 const app = express();
 
@@ -20,6 +22,8 @@ app.use(express.static(path.join(__dirname, "../build")));
 // Routes API
 app.use("/api/users", userRoutes);
 app.use("/api/data", dataRoutes);
+app.use("/api/solutions", solutionRoutes);
+app.use("/api/listes", listeRoutes);
 
 // path to React application
 app.get("*", (req, res) => {
