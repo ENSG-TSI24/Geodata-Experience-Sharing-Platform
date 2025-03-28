@@ -20,7 +20,7 @@ const TextAnnotator = () => {
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/listes/categories')
+    fetch('/api/listes/categories')
       .then(response => response.json())
       .then(data => {
         const categoryMap = {};
