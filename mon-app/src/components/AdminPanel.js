@@ -81,7 +81,11 @@ function AdminPanel({ full_name, organization, fonction, onLogout }) {
                       userFullName={full_name}
                     />
                   ) : (
-                    <TextAnnotator />
+                    <TextAnnotator 
+                    globalDataset={globalDataset}
+                    setGlobalDataset={setGlobalDataset}
+                    userFullName={full_name} 
+                  />
                   )}
                 </Suspense>
               </div>

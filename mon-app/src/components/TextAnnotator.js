@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiDownload, FiUpload } from "react-icons/fi";
 
-const TextAnnotator = () => {
+const TextAnnotator = (userFullName) => {
   const [text, setText] = useState('');
   const [title, setTitle] = useState('');
   const [globalDataset, setGlobalDataset] = useState([]);
@@ -61,7 +61,7 @@ const TextAnnotator = () => {
               ])
             )
           },
-          userFullName: "currentUser" // À remplacer par le vrai user
+          userFullName: userFullName 
         })
       });
   
@@ -268,7 +268,7 @@ const TextAnnotator = () => {
             Données stockées avec succès dans Neo4J!
           </div>
         )}
-        
+
         <button className="mode-reinit" onClick={handleReset}>Réinitialiser</button>
         
         <button
