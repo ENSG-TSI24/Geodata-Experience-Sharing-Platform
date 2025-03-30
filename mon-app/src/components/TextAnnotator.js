@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiDownload, FiUpload } from "react-icons/fi";
 
-const TextAnnotator = (userFullName) => {
+function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
+
   const [text, setText] = useState('');
   const [title, setTitle] = useState('');
-  const [globalDataset, setGlobalDataset] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const [selectedText, setSelectedText] = useState('');
@@ -52,16 +52,11 @@ const TextAnnotator = (userFullName) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           data: {
-            ...textData,
-            // pour convertir les annotations en propriétés
-            ...Object.fromEntries(
-              annotations.map(ann => [
-                ann.label, 
-                text.substring(ann.start, ann.end)
-              ])
-            )
+            Title: textData.Title,
+            Description: textData.Proprietees.description,
+            ...textData.Proprietees
           },
-          userFullName: userFullName 
+          userFullName: userFullName
         })
       });
   

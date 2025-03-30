@@ -6,6 +6,12 @@ async function createDataNode(data, userFullName) {
   try {
     console.log('Création du noeud avec:', { data, userFullName });
     // Création du noeud Donnee avec annotations de liste deroulante
+
+    const dataProps = {
+      ...data,
+      date_creation: new Date().toISOString()
+    };
+    delete dataProps.Proprietees;
     const result = await session.run(
       `MATCH (u:Utilisateur {full_name: $userFullName})
        CREATE (d:Donnee $dataProps)
@@ -13,10 +19,7 @@ async function createDataNode(data, userFullName) {
        RETURN d`,
       {
         userFullName,
-        dataProps: {
-          ...data,
-          date_creation: new Date().toISOString()
-        }
+        dataProps
       }
     );
     console.log('Résultat Neo4j:', result.records);
@@ -30,11 +33,14 @@ async function createDataNode(data, userFullName) {
         { title: data.Title, source: data.Source }
       );
     }
+    if (!result.records.length) {
+      throw new Error('Aucun noeud créé');
+    }
 
-    return result.records[0].get('d');
+    return result.records[0].get('d').properties;
   } catch (error) {
     console.error('Erreur Neo4j:', error);
-    throw new Error('Échec de la création dans la base de données');
+    throw new Error(`Échec création: ${error.message}`);
   } finally  {
     await session.close();
   }
