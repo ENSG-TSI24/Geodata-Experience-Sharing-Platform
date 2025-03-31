@@ -1,14 +1,14 @@
-
-import { useMapEvents } from "react-leaflet"; // Import useMapEvents
+import { useMapEvents } from "react-leaflet"
 
 function ClickableMap({ addMarker }) {
   useMapEvents({
-    click(e) {
-      addMarker(e.latlng);
+    click: (e) => {
+      addMarker(e.latlng)
     },
-  });
+  })
 
-  return null;
+  return null
 }
 
-export default ClickableMap;
+export default ClickableMap
+

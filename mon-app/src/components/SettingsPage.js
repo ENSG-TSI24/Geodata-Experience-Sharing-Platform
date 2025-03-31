@@ -19,7 +19,6 @@ function SettingsPage() {
     { id: 2, username: "user1", role: "user", organization: "Test Org" },
   ])
 
-  // Function to handle adding new annotation tag
   const handleAddTag = (e) => {
     e.preventDefault()
     if (newTagName.trim()) {
@@ -35,12 +34,10 @@ function SettingsPage() {
     }
   }
 
-  // Function to remove existing annotation tag
   const handleDeleteTag = (id) => {
     setTags(tags.filter((tag) => tag.id !== id))
   }
 
-  // Render tag management UI component
   const renderTagsSettings = () => (
     <div className="settings-section">
       <h3>Annotation Tags</h3>
@@ -91,7 +88,6 @@ function SettingsPage() {
     </div>
   )
 
-  // Render user management UI component
   const renderUserSettings = () => (
     <div className="settings-section">
       <h3>User Management</h3>
@@ -163,3 +159,4 @@ function SettingsPage() {
 }
 
 export default SettingsPage
+
