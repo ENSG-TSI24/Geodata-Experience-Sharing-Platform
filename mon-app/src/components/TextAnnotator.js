@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FiDownload, FiUpload } from "react-icons/fi";
+import { FiArrowDownCircle, FiDownload, FiUpload } from "react-icons/fi";
 
 function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
 
@@ -42,7 +42,18 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 3000);
   };
+  
 
+  const HideDiv = (event) =>{
+    let bigdiv = document.getElementById("big-div");
+    if (getComputedStyle(bigdiv).display !== "none"){
+      bigdiv.style.display = "none";
+    }
+    else {
+      bigdiv.style.display = "block";
+    }
+    
+  } 
   const handleStoreMetadata = async (textData) => {
     try {
       setStorageStatus({ loading: true, error: null, success: false });
@@ -199,8 +210,11 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
 
   return (
     <div ref={containerRef}>
+      <div className='entete-annot'>
       <h1>Description de la métadonnée</h1>
-      
+      <FiArrowDownCircle size={50} className="button-icon" id="deplie" onClick={HideDiv}></FiArrowDownCircle>
+      </div>
+    <div id="big-div">
       {notification && (
         <div className={`notification notification-${notification.type}`}>
           {notification.message}
@@ -316,6 +330,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
       <div>
         <h2>Dataset Global</h2>
         <pre>{JSON.stringify(globalDataset, null, 2)}</pre>
+      </div>
       </div>
     </div>
   );

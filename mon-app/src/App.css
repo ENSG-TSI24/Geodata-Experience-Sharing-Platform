@@ -1763,3 +1763,11 @@ body.dark .private-card {
   color: black;
   font-weight: bold;
 }
+
+.entete-annot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  
+}
+

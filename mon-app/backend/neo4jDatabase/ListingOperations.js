@@ -7,6 +7,8 @@ async function ListeCategories() {
         const result = await session.run(`
           MATCH (n:Donnee) 
           UNWIND keys(n) AS key 
+          WITH key 
+          WHERE NOT toLower(key) CONTAINS 'createdby'
           RETURN DISTINCT key
         `);
     
