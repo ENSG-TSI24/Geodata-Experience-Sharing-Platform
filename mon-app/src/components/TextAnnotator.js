@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiArrowDownCircle, FiDownload, FiUpload } from "react-icons/fi";
 
+
 function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   const [text, setText] = useState('');
   const [title, setTitle] = useState('');
@@ -74,6 +75,9 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 3000);
   };
+  
+
+
 
   const HideDiv = (event) => {
     const bigdiv = document.getElementById("big-div");
@@ -606,7 +610,8 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
           <pre>{JSON.stringify(globalDataset, null, 2)}</pre>
         </div>
       </div>
-    </div>
+      </div>
+   
   );
 };
 
