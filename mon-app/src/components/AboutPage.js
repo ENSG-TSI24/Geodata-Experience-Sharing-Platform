@@ -22,19 +22,19 @@ function AboutPage() {
 
         <section className="about-section">
           <h3>Features</h3>
-          <ul className="feature-list" style={{ paddingLeft: '30px' }}>
-            <li style={{ paddingLeft: '15px' }}>
+          <ul className="feature-list">
+            <li>
               <strong>Text Annotation:</strong> Select and annotate text with custom labels and hierarchical
               relationships.
             </li>
-            <li style={{ paddingLeft: '15px' }}>
+            <li>
               <strong>Map Annotation:</strong> Place markers on maps with detailed properties and descriptions.
             </li>
-            <li style={{ paddingLeft: '15px' }}>
+            <li>
               <strong>Data Export/Import:</strong> Save your work and share it with colleagues through our JSON
               export/import functionality.
             </li>
-            <li style={{ paddingLeft: '15px' }}>
+            <li>
               <strong>Dark Mode:</strong> Work comfortably in any lighting condition with our dark mode option.
             </li>
           </ul>
@@ -43,9 +43,13 @@ function AboutPage() {
         <section className="about-section">
           <h3>Contact</h3>
           <div className="contact-links">
-            <a href="https://github.com/ENSG-TSI24/Geodata-Experience-Sharing-Platform" className="contact-link">
+            <a href="#" className="contact-link">
               <FiGithub className="contact-icon" />
               <span>GitHub Repository</span>
+            </a>
+            <a href="mailto:support@example.com" className="contact-link">
+              <FiMail className="contact-icon" />
+              <span>support@example.com</span>
             </a>
           </div>
         </section>
@@ -60,3 +64,4 @@ function AboutPage() {
 }
 
 export default AboutPage
+
