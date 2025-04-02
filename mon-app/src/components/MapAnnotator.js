@@ -1,11 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet"
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
-import { FiTrash2, FiPlus, FiMapPin, FiX, FiInfo, FiEye, FiLock, FiAlertTriangle } from "react-icons/fi"
-import ClickableMap from "./ClickableMap"
+import { FiTrash2, FiPlus, FiMapPin, FiX, FiInfo, FiEye, FiLock } from "react-icons/fi"
 
 const customIcon = new L.Icon({
   iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
@@ -32,14 +31,16 @@ const propertyOptions = [
   { value: "Date_modification", label: "Date modification" },
 ]
 
-function AddMarkerOnClick({ setGlobalDataset, userFullName, viewMode, permissions }) {
+function AddMarkerOnClick({ setGlobalDataset, userFullName, canEdit, viewMode }) {
   const [formPosition, setFormPosition] = useState(null)
 
-  const addMarker = (latlng) => {
-    if (viewMode === "edit" && permissions.canCreate) {
-      setFormPosition(latlng)
-    }
-  }
+  useMapEvents({
+    click(e) {
+      if (canEdit && viewMode === "edit") {
+        setFormPosition(e.latlng)
+      }
+    },
+  })
 
   const handleFormSubmit = (title, description, isPrivate) => {
     if (title && description && formPosition) {
@@ -50,7 +51,7 @@ function AddMarkerOnClick({ setGlobalDataset, userFullName, viewMode, permission
           Position: formPosition,
           CreatedBy: userFullName,
           isPrivate: isPrivate,
-          CreatedAt: new Date().toISOString(),
+          Date_création: new Date().toISOString(),
         },
       }
       setGlobalDataset((prevDataset) => [...prevDataset, newMarker])
@@ -62,22 +63,17 @@ function AddMarkerOnClick({ setGlobalDataset, userFullName, viewMode, permission
     setFormPosition(null)
   }
 
-  return (
-    <>
-      <ClickableMap addMarker={addMarker} />
-      {formPosition && (
-        <MarkerForm
-          position={formPosition}
-          onSubmit={handleFormSubmit}
-          onCancel={handleFormCancel}
-          permissions={permissions}
-        />
-      )}
-    </>
-  )
+  return formPosition ? (
+    <MarkerForm
+      position={formPosition}
+      onSubmit={handleFormSubmit}
+      onCancel={handleFormCancel}
+      userRole={userFullName}
+    />
+  ) : null
 }
 
-function MarkerForm({ position, onSubmit, onCancel, permissions }) {
+function MarkerForm({ position, onSubmit, onCancel, userRole }) {
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [isPrivate, setIsPrivate] = useState(false)
@@ -96,6 +92,9 @@ function MarkerForm({ position, onSubmit, onCancel, permissions }) {
     e.preventDefault()
     if (validate()) {
       onSubmit(title, description, isPrivate)
+      setTitle("")
+      setDescription("")
+      setIsPrivate(false)
     }
   }
 
@@ -142,19 +141,17 @@ function MarkerForm({ position, onSubmit, onCancel, permissions }) {
             {errors.description && <div className="error-message">{errors.description}</div>}
           </div>
 
-          {permissions.canManageRights && (
-            <div className="form-group checkbox-group">
-              <label htmlFor="marker-private" className="checkbox-label">
-                <input
-                  id="marker-private"
-                  type="checkbox"
-                  checked={isPrivate}
-                  onChange={(e) => setIsPrivate(e.target.checked)}
-                />
-                <span>Marquer comme privé (admin uniquement)</span>
-              </label>
-            </div>
-          )}
+          <div className="form-group checkbox-group">
+            <label htmlFor="marker-private" className="checkbox-label">
+              <input
+                id="marker-private"
+                type="checkbox"
+                checked={isPrivate}
+                onChange={(e) => setIsPrivate(e.target.checked)}
+              />
+              <span>Marquer comme privé (admin/éditeur uniquement)</span>
+            </label>
+          </div>
 
           <div className="form-actions">
             <button type="button" className="button button-secondary" onClick={onCancel}>
@@ -170,52 +167,7 @@ function MarkerForm({ position, onSubmit, onCancel, permissions }) {
   )
 }
 
-function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode, permissions }) {
-  // Function to retry sending pending data to server
-  const retryPendingData = async () => {
-    try {
-      const offlineData = JSON.parse(localStorage.getItem("offlineMetadata") || "[]")
-      const pendingData = offlineData.filter((item) => item.pendingSync)
-
-      if (pendingData.length === 0) return
-
-      showNotification(`Tentative de synchronisation de ${pendingData.length} élément(s)...`, "info")
-
-      let successCount = 0
-      for (const item of pendingData) {
-        try {
-          const response = await fetch("/api/data/store-metadata", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              data: item.data,
-              userFullName: item.data.LastModifiedBy || userFullName,
-            }),
-          })
-
-          if (response.ok) {
-            // Mark as synced
-            item.pendingSync = false
-            successCount++
-          }
-        } catch (error) {
-          console.warn("Failed to sync item:", error)
-        }
-      }
-
-      // Update localStorage with synced status
-      localStorage.setItem("offlineMetadata", JSON.stringify(offlineData))
-
-      if (successCount > 0) {
-        showNotification(`${successCount} élément(s) synchronisé(s) avec succès`, "success")
-      } else {
-        showNotification("La synchronisation a échoué, réessayez plus tard", "warning")
-      }
-    } catch (error) {
-      console.error("Error during retry:", error)
-    }
-  }
-
+function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode, canEdit, canDelete, userRole }) {
   const [selectedText, setSelectedText] = useState("")
   const [activeMarkerIndex, setActiveMarkerIndex] = useState(null)
   const [selectedProperty, setSelectedProperty] = useState("")
@@ -224,15 +176,12 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode,
     error: null,
     success: false,
   })
-  const [notification, setNotification] = useState(null)
 
-  const showNotification = (message, type) => {
-    setNotification({ message, type })
-    setTimeout(() => setNotification(null), 3000)
-  }
+  const isEditMode = canEdit && viewMode === "edit"
 
+  // Handle text selection in popup
   const handleTextSelection = (index) => {
-    if (viewMode !== "edit" || !permissions.canUpdate) return
+    if (!isEditMode) return
 
     const selection = window.getSelection().toString().trim()
     if (selection) {
@@ -241,11 +190,9 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode,
     }
   }
 
+  // Add property to marker
   const addPropertyToMarker = (property) => {
-    if (viewMode !== "edit" || !permissions.canUpdate) {
-      showNotification("Vous n'avez pas les permissions pour modifier les propriétés", "error")
-      return
-    }
+    if (!isEditMode) return
 
     if (activeMarkerIndex !== null && selectedText && property) {
       setGlobalDataset((prevDataset) =>
@@ -256,8 +203,7 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode,
               Proprietes: {
                 ...marker.Proprietes,
                 [property]: selectedText,
-                LastModifiedBy: userFullName,
-                LastModifiedAt: new Date().toISOString(),
+                Date_modification: new Date().toISOString(),
               },
             }
           }
@@ -267,15 +213,12 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode,
       setSelectedText("")
       setActiveMarkerIndex(null)
       setSelectedProperty("")
-      showNotification("Propriété ajoutée avec succès", "success")
     }
   }
 
+  // Remove property from marker
   const removeProperty = (markerIndex, propertyKey) => {
-    if (viewMode !== "edit" || !permissions.canUpdate) {
-      showNotification("Vous n'avez pas les permissions pour supprimer les propriétés", "error")
-      return
-    }
+    if (!isEditMode) return
 
     setGlobalDataset((prevDataset) =>
       prevDataset.map((marker, i) => {
@@ -286,139 +229,67 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode,
             ...marker,
             Proprietes: {
               ...updatedProperties,
-              LastModifiedBy: userFullName,
-              LastModifiedAt: new Date().toISOString(),
+              Date_modification: new Date().toISOString(),
             },
           }
         }
         return marker
       }),
     )
-    showNotification("Propriété supprimée avec succès", "success")
   }
 
+  // Remove marker entirely (admin only)
   const removeMarker = (markerIndex) => {
-    if (viewMode !== "edit" || !permissions.canDelete) {
-      showNotification("Vous n'avez pas les permissions pour supprimer des marqueurs", "error")
-      return
-    }
+    if (!canDelete) return
 
     setGlobalDataset((prevDataset) => prevDataset.filter((_, index) => index !== markerIndex))
-    showNotification("Marqueur supprimé avec succès", "success")
   }
 
+  // Store metadata to backend
   const handleStoreMetadata = async (marker) => {
-    if (!permissions.canCreate && !permissions.canUpdate) {
-      showNotification("Vous n'avez pas les permissions pour stocker des métadonnées", "error")
-      return
-    }
+    if (!canEdit) return
 
     try {
       setStorageStatus({ loading: true, error: null, success: false })
 
-      // Prepare the data to be stored
-      const metadataToStore = {
-        Title: marker.Title,
-        ...marker.Proprietes,
-        Position: `${marker.Proprietes.Position.lat},${marker.Proprietes.Position.lng}`,
-        LastModifiedBy: userFullName,
-        LastModifiedAt: new Date().toISOString(),
-      }
-
-      // Always store in localStorage as a backup
-      const offlineData = JSON.parse(localStorage.getItem("offlineMetadata") || "[]")
-      offlineData.push({
-        timestamp: new Date().toISOString(),
-        data: metadataToStore,
-        pendingSync: true,
+      const response = await fetch("/api/data/store-metadata", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: {
+            Title: marker.Title,
+            ...marker.Proprietes,
+            Position: `${marker.Proprietes.Position.lat},${marker.Proprietes.Position.lng}`,
+          },
+          userFullName: userFullName,
+          userRole: userRole,
+        }),
       })
-      localStorage.setItem("offlineMetadata", JSON.stringify(offlineData))
 
-      // Try to send to server
-      let serverSuccess = false
-      try {
-        // Set a reasonable timeout to prevent long waiting
-        const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 8000) // 8 second timeout
-
-        const response = await fetch("/api/data/store-metadata", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            data: metadataToStore,
-            userFullName: userFullName,
-          }),
-          signal: controller.signal,
-        })
-
-        // Clear the timeout
-        clearTimeout(timeoutId)
-
-        if (response.ok) {
-          // Mark the data as synced in localStorage
-          const updatedOfflineData = offlineData.map((item, index) =>
-            index === offlineData.length - 1 ? { ...item, pendingSync: false } : item,
-          )
-          localStorage.setItem("offlineMetadata", JSON.stringify(updatedOfflineData))
-
-          serverSuccess = true
-          setStorageStatus({ loading: false, error: null, success: true })
-          showNotification("Métadonnées stockées avec succès sur le serveur", "success")
-        } else {
-          const errorText = await response.text().catch(() => "Erreur inconnue")
-          throw new Error(`Erreur serveur (${response.status}): ${errorText.substring(0, 100)}`)
-        }
-      } catch (apiError) {
-        console.warn("Stockage serveur échoué, utilisation du stockage local:", apiError)
-
-        // Check if it's a timeout error
-        if (apiError.name === "AbortError") {
-          showNotification("Le serveur ne répond pas, données stockées localement", "warning")
-        } else if (apiError.message.includes("500")) {
-          showNotification("Erreur interne du serveur, données stockées localement", "warning")
-        } else {
-          showNotification("Métadonnées stockées localement (mode hors ligne)", "warning")
-        }
-
-        setStorageStatus({ loading: false, error: null, success: true })
+      if (!response.ok) {
+        throw new Error(`Erreur HTTP: ${response.status}`)
       }
 
-      // Clear success message after a delay
+      const result = await response.json()
+      setStorageStatus({ loading: false, error: null, success: true })
       setTimeout(() => setStorageStatus({ loading: false, error: null, success: false }), 3000)
     } catch (error) {
-      console.error("Erreur critique lors du stockage:", error)
-      setStorageStatus({ loading: false, error: "Erreur lors du stockage des données", success: false })
-      showNotification(`Erreur lors du stockage: ${error.message}`, "error")
+      setStorageStatus({ loading: false, error: error.message, success: false })
     }
   }
 
-  // Filter markers based on permissions
-  const visibleDataset = globalDataset.filter((marker) => {
-    // Admin can see everything
-    if (permissions.canManageRights) return true
+  // Check if user can view private data
+  const canViewPrivate = userRole === "admin" || userRole === "editeur"
 
-    // Others can't see private markers unless they created them
-    if (marker.Proprietes.isPrivate && marker.Proprietes.CreatedBy !== userFullName) {
-      return false
-    }
-
-    return true
-  })
+  // Filter dataset based on user role
+  const filteredDataset = globalDataset.filter((marker) => canViewPrivate || !marker.Proprietes.isPrivate)
 
   return (
     <div className="map-annotator">
-      {notification && (
-        <div className={`notification notification-${notification.type}`}>
-          {notification.type === "error" && <FiAlertTriangle />}
-          {notification.type === "warning" && <FiAlertTriangle />}
-          <span>{notification.message}</span>
-        </div>
-      )}
-
-      {viewMode !== "edit" && (
+      {!isEditMode && (
         <div className="view-mode-banner">
           <FiEye className="view-icon" />
-          <span>Vous êtes en mode visualisation. L'édition est désactivée.</span>
+          <span>Vous êtes en mode {canEdit ? "recherche" : "lecture seule"}</span>
         </div>
       )}
 
@@ -430,11 +301,11 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode,
         <AddMarkerOnClick
           setGlobalDataset={setGlobalDataset}
           userFullName={userFullName}
+          canEdit={canEdit}
           viewMode={viewMode}
-          permissions={permissions}
         />
 
-        {visibleDataset.map((marker, index) => (
+        {filteredDataset.map((marker, index) => (
           <Marker key={index} position={marker.Proprietes.Position} icon={customIcon}>
             <Popup className="custom-popup">
               <div className="popup-content">
@@ -442,12 +313,12 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode,
                   <h3 className="popup-title">
                     {marker.Title}
                     {marker.Proprietes.isPrivate && (
-                      <span className="private-badge" title="Données privées (admin uniquement)">
+                      <span className="private-badge" title="Données privées (admin/éditeur uniquement)">
                         <FiLock />
                       </span>
                     )}
                   </h3>
-                  {viewMode === "edit" && permissions.canDelete && (
+                  {canDelete && (
                     <button
                       onClick={() => removeMarker(index)}
                       className="button button-danger button-sm"
@@ -463,78 +334,39 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode,
                   <div
                     className="popup-text"
                     onMouseUp={() => handleTextSelection(index)}
-                    style={{ cursor: viewMode === "edit" && permissions.canUpdate ? "text" : "default" }}
+                    style={{ cursor: isEditMode ? "text" : "default" }}
                   >
                     {marker.Proprietes.Description}
-                  </div>
-                </div>
-
-                {/* Metadata Section */}
-                <div className="popup-section">
-                  <div className="popup-label">Métadonnées:</div>
-                  <div className="metadata-list">
-                    {marker.Proprietes.CreatedBy && (
-                      <div className="metadata-item">
-                        <span className="metadata-key">Créé par:</span>
-                        <span className="metadata-value">{marker.Proprietes.CreatedBy}</span>
-                      </div>
-                    )}
-                    {marker.Proprietes.CreatedAt && (
-                      <div className="metadata-item">
-                        <span className="metadata-key">Date de création:</span>
-                        <span className="metadata-value">{new Date(marker.Proprietes.CreatedAt).toLocaleString()}</span>
-                      </div>
-                    )}
-                    {marker.Proprietes.LastModifiedBy && (
-                      <div className="metadata-item">
-                        <span className="metadata-key">Dernière modification par:</span>
-                        <span className="metadata-value">{marker.Proprietes.LastModifiedBy}</span>
-                      </div>
-                    )}
-                    {marker.Proprietes.LastModifiedAt && (
-                      <div className="metadata-item">
-                        <span className="metadata-key">Date de dernière modification:</span>
-                        <span className="metadata-value">
-                          {new Date(marker.Proprietes.LastModifiedAt).toLocaleString()}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </div>
 
                 {/* Section Propriétés */}
                 {Object.entries(marker.Proprietes).some(
                   ([key]) =>
-                    ![
-                      "Position",
-                      "Description",
-                      "CreatedBy",
-                      "CreatedAt",
-                      "LastModifiedBy",
-                      "LastModifiedAt",
-                      "isPrivate",
-                    ].includes(key),
+                    key !== "Position" &&
+                    key !== "Description" &&
+                    key !== "CreatedBy" &&
+                    key !== "isPrivate" &&
+                    key !== "Date_création" &&
+                    key !== "Date_modification",
                 ) && (
                   <div className="popup-section">
                     <div className="popup-label">Propriétés:</div>
                     <div className="properties-list">
                       {Object.entries(marker.Proprietes).map(
                         ([key, value]) =>
-                          ![
-                            "Position",
-                            "Description",
-                            "CreatedBy",
-                            "CreatedAt",
-                            "LastModifiedBy",
-                            "LastModifiedAt",
-                            "isPrivate",
-                          ].includes(key) && (
+                          key !== "Position" &&
+                          key !== "Description" &&
+                          key !== "CreatedBy" &&
+                          key !== "isPrivate" &&
+                          key !== "Date_création" &&
+                          key !== "Date_modification" && (
                             <div key={key} className="property-item">
                               <div className="property-content">
                                 <span className="property-key">{key}:</span>
                                 <span className="property-value">{value}</span>
                               </div>
-                              {viewMode === "edit" && permissions.canUpdate && (
+                              {isEditMode && (
                                 <button
                                   onClick={() => removeProperty(index, key)}
                                   className="button-icon-only"
@@ -550,8 +382,43 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode,
                   </div>
                 )}
 
+                {/* Métadonnées */}
+                <div className="popup-section">
+                  <div className="popup-label">Métadonnées:</div>
+                  <div className="properties-list">
+                    {marker.Proprietes.CreatedBy && (
+                      <div className="property-item">
+                        <div className="property-content">
+                          <span className="property-key">Créé par:</span>
+                          <span className="property-value">{marker.Proprietes.CreatedBy}</span>
+                        </div>
+                      </div>
+                    )}
+                    {marker.Proprietes.Date_création && (
+                      <div className="property-item">
+                        <div className="property-content">
+                          <span className="property-key">Date de création:</span>
+                          <span className="property-value">
+                            {new Date(marker.Proprietes.Date_création).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    {marker.Proprietes.Date_modification && (
+                      <div className="property-item">
+                        <div className="property-content">
+                          <span className="property-key">Dernière modification:</span>
+                          <span className="property-value">
+                            {new Date(marker.Proprietes.Date_modification).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Sélection de texte et ajout de propriété */}
-                {viewMode === "edit" && permissions.canUpdate && selectedText && activeMarkerIndex === index && (
+                {isEditMode && selectedText && activeMarkerIndex === index && (
                   <div className="popup-section selection-section">
                     <div className="popup-label">Texte sélectionné:</div>
                     <div className="selected-text">"{selectedText}"</div>
@@ -581,46 +448,45 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode,
                 )}
 
                 {/* Bouton de stockage */}
-                {(permissions.canCreate || permissions.canUpdate) && (
+                {canEdit && (
                   <div className="popup-section">
-                    <div className="button-group">
-                      <button
-                        onClick={() => handleStoreMetadata(marker)}
-                        className="button button-accent"
-                        disabled={storageStatus.loading}
-                      >
-                        {storageStatus.loading ? "Stockage en cours..." : "Stocker les métadonnées"}
-                      </button>
-
-                      <button
-                        onClick={retryPendingData}
-                        className="button button-secondary"
-                        title="Essayer de synchroniser les données en attente"
-                      >
-                        Synchroniser
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => handleStoreMetadata(marker)}
+                      className="button button-accent"
+                      disabled={storageStatus.loading}
+                    >
+                      {storageStatus.loading ? "Stockage en cours..." : "Stocker les métadonnées"}
+                    </button>
 
                     {storageStatus.error && <div className="error-message">Erreur: {storageStatus.error}</div>}
 
                     {storageStatus.success && <div className="success-message">Données stockées avec succès!</div>}
                   </div>
                 )}
+
+                {/* Instructions */}
+                <div className="popup-footer">
+                  {isEditMode ? (
+                    <small>Sélectionnez du texte pour ajouter des propriétés. Cliquez en dehors pour fermer.</small>
+                  ) : (
+                    <small>Mode lecture seule. L'édition est désactivée.</small>
+                  )}
+                </div>
               </div>
             </Popup>
           </Marker>
         ))}
       </MapContainer>
 
-      {visibleDataset.length === 0 && (
+      {filteredDataset.length === 0 && (
         <div className="empty-state map-empty-state">
           <FiMapPin className="empty-icon" />
-          <p>Cliquez sur la carte pour ajouter des jeux de données</p>
-          {viewMode !== "edit" && (
+          <p>Cliquez sur la carte pour ajouter des jeux de données.</p>
+          {!isEditMode && (
             <p className="view-mode-note">
-              {permissions.canCreate
+              {canEdit
                 ? "Passez en mode édition pour ajouter des marqueurs."
-                : "Vous n'avez pas les permissions pour ajouter des marqueurs."}
+                : "Vous avez besoin de privilèges d'administrateur ou d'éditeur pour ajouter des marqueurs."}
             </p>
           )}
         </div>

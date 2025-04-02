@@ -1,0 +1,108 @@
+/* Permission Request Form */
+.permission-request-form {
+    background-color: var(--light-gray);
+    padding: 1.5rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 2rem;
+    border-left: 4px solid var(--secondary-color);
+  }
+  
+  .permission-request-form h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+  }
+  
+  .permission-request-form .icon {
+    color: var(--secondary-color);
+  }
+  
+  .permission-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background-color: var(--light-gray);
+    border-radius: var(--radius-sm);
+    margin-bottom: 2rem;
+  }
+  
+  .permission-info .info-icon {
+    color: var(--secondary-color);
+  }
+  
+  .anonymous-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background-color: rgba(243, 156, 18, 0.1);
+    border-radius: var(--radius-sm);
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .anonymous-note .info-icon {
+    color: #f39c12;
+    margin-top: 0.2rem;
+  }
+  
+  .anonymous-note p {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+  
+  .required-field {
+    color: var(--danger-color);
+    margin-left: 0.25rem;
+  }
+  
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  .section-header h3 {
+    margin: 0;
+  }
+  
+  /* Success message */
+  .success-message {
+    background-color: rgba(46, 204, 113, 0.1);
+    border-left: 4px solid #2ecc71;
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1rem;
+  }
+  
+  .success-message p {
+    margin-bottom: 1rem;
+  }
+  
+  /* Loading and error states */
+  .loading {
+    padding: 1rem;
+    text-align: center;
+    color: var(--text-muted);
+  }
+  
+  .error-message {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: rgba(231, 76, 60, 0.1);
+    border-left: 4px solid var(--danger-color);
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1rem;
+  }
+  
+  .error-message .icon {
+    color: var(--danger-color);
+  }
+  
+  

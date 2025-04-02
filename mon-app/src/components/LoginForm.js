@@ -1,20 +1,22 @@
 "use client"
 
 import { useState } from "react"
-import { FiUser, FiHome, FiLock } from "react-icons/fi"
+import { FiUser, FiHome, FiShield, FiInfo } from "react-icons/fi"
 
 function LoginForm({ onLogin }) {
   const [full_name, setFullName] = useState("")
   const [organization, setOrganization] = useState("")
-  const [role, setRole] = useState("visiteur") // Default to visiteur
+  const [role, setRole] = useState("editeur") // Default to editeur role now
   const [rememberMe, setRememberMe] = useState(false)
   const [errors, setErrors] = useState({})
 
   // Validate form fields before submission
   const validate = () => {
     const newErrors = {}
-    if (!full_name.trim()) newErrors.full_name = "Nom complet requis"
-    if (!organization.trim()) newErrors.organization = "Organisation requise"
+    if (role !== "anonyme") {
+      if (!full_name.trim()) newErrors.full_name = "Nom complet requis"
+      if (!organization.trim()) newErrors.organization = "Organisation requise"
+    }
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -25,56 +27,29 @@ function LoginForm({ onLogin }) {
     if (!validate()) return
 
     try {
-      // Set a loading state
-      setErrors({ ...errors, submit: null })
-      let loginSuccessful = false
-
-      try {
-        // Try to connect to the backend first
-        const response = await fetch("/api/users/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            full_name,
-            organization,
-            fonction: role, // Use the selected role as fonction
-          }),
-        })
-
-        if (response.ok) {
-          const result = await response.json()
-          loginSuccessful = true
-        } else {
-          const errorData = await response.json()
-          throw new Error(errorData.error || "Erreur serveur")
-        }
-      } catch (apiError) {
-        console.warn("Backend connection failed, using fallback login:", apiError)
-
-        // Fallback: If the API call fails, we'll still allow login but with a warning
-        setErrors({
-          fallback: "Connexion au serveur impossible. Mode hors ligne activé.",
-        })
-
-        // Small delay to show the message
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-        loginSuccessful = true
+      // For anonymous users, use default values
+      const userData = {
+        full_name: role === "anonyme" ? "Utilisateur Anonyme" : full_name,
+        organization: role === "anonyme" ? "Non spécifié" : organization,
+        fonction: role,
       }
 
-      if (loginSuccessful) {
-        // Proceed with login
-        onLogin(full_name, organization, role)
+      const response = await fetch("/api/users/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userData),
+      })
 
-        if (rememberMe) {
-          localStorage.setItem(
-            "user",
-            JSON.stringify({
-              full_name,
-              organization,
-              fonction: role,
-            }),
-          )
-        }
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Erreur serveur")
+      }
+
+      const result = await response.json()
+      onLogin(userData.full_name, userData.organization, role)
+
+      if (rememberMe) {
+        localStorage.setItem("user", JSON.stringify(userData))
       }
     } catch (error) {
       console.error("Échec login:", error)
@@ -96,6 +71,7 @@ function LoginForm({ onLogin }) {
             <label htmlFor="full_name">
               <FiUser className="input-icon" />
               Nom complet
+              {role !== "anonyme" && <span className="required-field">*</span>}
             </label>
             <input
               id="full_name"
@@ -104,6 +80,8 @@ function LoginForm({ onLogin }) {
               onChange={(e) => setFullName(e.target.value)}
               placeholder="Votre nom et prénom"
               aria-invalid={!!errors.full_name}
+              disabled={role === "anonyme"}
+              required={role !== "anonyme"}
             />
             {errors.full_name && <div className="error-message">{errors.full_name}</div>}
           </div>
@@ -112,6 +90,7 @@ function LoginForm({ onLogin }) {
             <label htmlFor="organization">
               <FiHome className="input-icon" />
               Organisation
+              {role !== "anonyme" && <span className="required-field">*</span>}
             </label>
             <input
               id="organization"
@@ -120,22 +99,38 @@ function LoginForm({ onLogin }) {
               onChange={(e) => setOrganization(e.target.value)}
               placeholder="Votre organisation"
               aria-invalid={!!errors.organization}
+              disabled={role === "anonyme"}
+              required={role !== "anonyme"}
             />
             {errors.organization && <div className="error-message">{errors.organization}</div>}
           </div>
 
           <div className="form-group">
             <label htmlFor="role">
-              <FiLock className="input-icon" />
+              <FiShield className="input-icon" />
               Rôle
             </label>
             <select id="role" value={role} onChange={(e) => setRole(e.target.value)} className="select-input">
-              <option value="admin">Admin</option>
               <option value="editeur">Éditeur</option>
-              <option value="visiteur">Visiteur</option>
+              <option value="admin">Admin</option>
               <option value="anonyme">Anonyme</option>
             </select>
+            <div className="role-info">
+              <FiInfo className="info-icon" />
+              <small>
+                {role === "admin" && "Accès complet à toutes les fonctionnalités"}
+                {role === "editeur" && "Peut créer et modifier, mais pas supprimer"}
+                {role === "anonyme" && "Accès limité aux données agrégées"}
+              </small>
+            </div>
           </div>
+
+          {role === "anonyme" && (
+            <div className="anonymous-note">
+              <FiInfo className="info-icon" />
+              <p>En mode anonyme, vous aurez un accès limité aux données agrégées uniquement.</p>
+            </div>
+          )}
 
           <div className="form-group checkbox-group">
             <label htmlFor="remember-me" className="checkbox-label">
@@ -148,13 +143,6 @@ function LoginForm({ onLogin }) {
               <span>Se souvenir de moi</span>
             </label>
           </div>
-
-          {errors.fallback && (
-            <div className="fallback-warning">
-              <div className="warning-icon">⚠️</div>
-              <div className="warning-message">{errors.fallback}</div>
-            </div>
-          )}
 
           {errors.submit && <div className="form-error">{errors.submit}</div>}
 
