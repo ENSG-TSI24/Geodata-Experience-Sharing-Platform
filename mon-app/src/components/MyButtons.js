@@ -1,19 +1,16 @@
 "use client"
 
-import { FiUpload, FiDownload, FiAlertTriangle } from "react-icons/fi"
 import { useState } from "react"
+import { FiUpload, FiDownload, FiAlertTriangle } from "react-icons/fi"
 
-function MyButtons({ permissions }) {
-  const [showExportOptions, setShowExportOptions] = useState(false)
-  const [exportFormat, setExportFormat] = useState("JSON")
-  const [notification, setNotification] = useState(null)
+function MyButtons({ canEdit, canDelete, userRole }) {
+  const [showConfirmation, setShowConfirmation] = useState(false)
+  const [exportType, setExportType] = useState("json")
+  const [exportStatus, setExportStatus] = useState({ loading: false, error: null })
 
-  // Handle metadata import from file
+  // Handle metadata import from file (admin only)
   const handleImport = () => {
-    if (!permissions.canCreate) {
-      showNotification("Vous n'avez pas les permissions pour importer des données", "error")
-      return
-    }
+    if (!canDelete) return // Only admin can import
 
     const input = document.createElement("input")
     input.type = "file"
@@ -26,9 +23,9 @@ function MyButtons({ permissions }) {
           try {
             const data = JSON.parse(event.target.result)
             // Here you would process the imported data
-            showNotification("Métadonnées importées avec succès!", "success")
+            alert("Métadonnées importées avec succès!")
           } catch (error) {
-            showNotification("Erreur d'importation: Format JSON invalide", "error")
+            alert("Erreur d'importation: Format JSON invalide")
           }
         }
         reader.readAsText(file)
@@ -37,52 +34,44 @@ function MyButtons({ permissions }) {
     input.click()
   }
 
-  // Handle metadata export to file
+  // Handle metadata export to file (with role-based restrictions)
   const handleExport = () => {
-    if (!permissions.canExport) {
-      showNotification("Vous n'avez pas les permissions pour exporter des données", "error")
-      return
-    }
+    setExportStatus({ loading: true, error: null })
 
     // Get data from localStorage
     const textAnnotations = localStorage.getItem("textAnnotations") || "[]"
     const globalDataset = localStorage.getItem("globalDataset") || "[]"
-    const offlineMetadata = localStorage.getItem("offlineMetadata") || "[]"
 
     // Combine data
-    const exportData = {
+    let exportData = {
       textAnnotations: JSON.parse(textAnnotations),
       mapAnnotations: JSON.parse(globalDataset),
-      offlinePendingData: JSON.parse(offlineMetadata).filter((item) => item.pendingSync),
       exportDate: new Date().toISOString(),
-      exportedBy: "User", // This would be the actual user in a real app
-      exportFormat: exportFormat,
+      exportedBy: userRole,
     }
 
     // Apply role-based filtering
-    if (permissions.canExport && !permissions.canDelete) {
-      // For editors: filter out data they didn't create
-      exportData.textAnnotations = exportData.textAnnotations.filter((annotation) => !annotation.isPrivate)
-      exportData.mapAnnotations = exportData.mapAnnotations.filter((marker) => !marker.Proprietes.isPrivate)
-    }
+    if (userRole === "anonyme") {
+      // Anonymous users can't export
+      setExportStatus({ loading: false, error: "Les utilisateurs anonymes ne peuvent pas exporter de données." })
+      return
+    } else if (userRole === "visiteur") {
+      // Visitors can only export anonymized JSON
+      exportData = anonymizeData(exportData)
+      setExportType("json")
+    } else if (userRole === "editeur") {
+      // Editors can export CSV and JSON with some filtering
+      exportData = filterSensitiveData(exportData)
 
-    if (permissions.canRead && !permissions.canUpdate) {
-      // For visitors: only anonymized JSON
-      // Remove sensitive fields
-      exportData.textAnnotations = exportData.textAnnotations.map((annotation) => ({
-        ...annotation,
-        createdBy: "Anonymous",
-        // Remove other sensitive fields
-      }))
-      exportData.mapAnnotations = exportData.mapAnnotations.map((marker) => ({
-        ...marker,
-        Proprietes: {
-          ...marker.Proprietes,
-          CreatedBy: "Anonymous",
-          // Remove other sensitive fields
-        },
-      }))
+      // Check if data volume exceeds editor limit (example: 10 items)
+      const totalItems = exportData.textAnnotations.length + exportData.mapAnnotations.length
+      if (totalItems > 10 && !showConfirmation) {
+        setShowConfirmation(true)
+        setExportStatus({ loading: false, error: null })
+        return
+      }
     }
+    // Admins can export everything without restrictions
 
     // Create and download file
     const dataStr = JSON.stringify(exportData, null, 2)
@@ -96,88 +85,133 @@ function MyButtons({ permissions }) {
     link.click()
     document.body.removeChild(link)
 
-    // Log export for admin
-    if (permissions.canManageRights) {
-      console.log(`Export log: User exported data in ${exportFormat} format at ${new Date().toISOString()}`)
-    }
-
-    showNotification(`Données exportées avec succès en format ${exportFormat}`, "success")
+    setExportStatus({ loading: false, error: null })
+    setShowConfirmation(false)
   }
 
-  const showNotification = (message, type) => {
-    setNotification({ message, type })
-    setTimeout(() => setNotification(null), 3000)
+  // Filter sensitive data for editor exports
+  const filterSensitiveData = (data) => {
+    // Example: Remove email fields, exact coordinates, etc.
+    return {
+      ...data,
+      textAnnotations: data.textAnnotations.filter((item) => !item.isPrivate),
+      mapAnnotations: data.mapAnnotations
+        .map((marker) => {
+          if (marker.Proprietes && marker.Proprietes.isPrivate) {
+            return null
+          }
+          // Filter out sensitive properties
+          const filteredProps = { ...marker.Proprietes }
+          delete filteredProps.email
+          delete filteredProps.phone
+          return { ...marker, Proprietes: filteredProps }
+        })
+        .filter(Boolean),
+    }
   }
 
-  const toggleExportOptions = () => {
-    if (permissions.canExport) {
-      setShowExportOptions(!showExportOptions)
-    } else {
-      showNotification("Vous n'avez pas les permissions pour exporter des données", "error")
+  // Anonymize data for visitor exports
+  const anonymizeData = (data) => {
+    // Create aggregated/anonymized version of the data
+    return {
+      summary: {
+        totalAnnotations: data.textAnnotations.length,
+        totalMapMarkers: data.mapAnnotations.length,
+        categories: getCategoryCounts(data),
+        exportDate: data.exportDate,
+      },
+      // Include only public data with minimal details
+      publicMapData: data.mapAnnotations
+        .filter((marker) => !marker.Proprietes?.isPrivate)
+        .map((marker) => ({
+          title: marker.Title,
+          // Approximate location (reduce precision)
+          location: marker.Proprietes?.Position
+            ? {
+                lat: Math.round(marker.Proprietes.Position.lat * 100) / 100,
+                lng: Math.round(marker.Proprietes.Position.lng * 100) / 100,
+              }
+            : null,
+        })),
     }
+  }
+
+  // Helper to count categories
+  const getCategoryCounts = (data) => {
+    const categories = {}
+
+    // Count text annotation categories
+    data.textAnnotations.forEach((annotation) => {
+      Object.keys(annotation).forEach((key) => {
+        if (key !== "text" && key !== "annotation") {
+          categories[key] = (categories[key] || 0) + 1
+        }
+      })
+    })
+
+    // Count map marker properties
+    data.mapAnnotations.forEach((marker) => {
+      if (marker.Proprietes) {
+        Object.keys(marker.Proprietes).forEach((key) => {
+          if (key !== "Position" && key !== "Description") {
+            categories[key] = (categories[key] || 0) + 1
+          }
+        })
+      }
+    })
+
+    return categories
+  }
+
+  // Cancel export confirmation
+  const handleCancelExport = () => {
+    setShowConfirmation(false)
+    setExportStatus({ loading: false, error: null })
   }
 
   return (
-    <div className="button-container">
-      {notification && (
-        <div className={`notification notification-${notification.type}`}>
-          {notification.type === "error" && <FiAlertTriangle />}
-          <span>{notification.message}</span>
-        </div>
+    <div className="button-group">
+      {canDelete && (
+        <button className="button button-primary" onClick={handleImport} aria-label="Importer des métadonnées">
+          <FiUpload className="button-icon" />
+          <span>Importer</span>
+        </button>
       )}
 
-      <div className="button-group">
-        {permissions.canCreate && (
-          <button className="button button-primary" onClick={handleImport} aria-label="Importer des métadonnées">
-            <FiUpload className="button-icon" />
-            <span>Importer</span>
-          </button>
-        )}
-
-        {permissions.canExport && (
-          <div className="export-container">
-            <button
-              className="button button-secondary"
-              onClick={toggleExportOptions}
-              aria-label="Exporter des métadonnées"
-            >
-              <FiDownload className="button-icon" />
-              <span>Exporter</span>
-            </button>
-
-            {showExportOptions && (
-              <div className="export-options">
-                <div className="export-header">
-                  <h4>Format d'exportation</h4>
-                </div>
-                <div className="export-formats">
-                  {permissions.exportFormats.map((format) => (
-                    <label key={format} className="export-format-option">
-                      <input
-                        type="radio"
-                        name="exportFormat"
-                        value={format}
-                        checked={exportFormat === format}
-                        onChange={() => setExportFormat(format)}
-                      />
-                      <span>{format}</span>
-                    </label>
-                  ))}
-                </div>
-                <button
-                  className="button button-primary button-sm"
-                  onClick={() => {
-                    handleExport()
-                    setShowExportOptions(false)
-                  }}
-                >
-                  Exporter en {exportFormat}
+      {userRole !== "anonyme" && (
+        <>
+          {showConfirmation ? (
+            <div className="export-confirmation">
+              <FiAlertTriangle className="warning-icon" />
+              <span>Volume important de données. Confirmer l'export?</span>
+              <div className="confirmation-actions">
+                <button className="button button-secondary button-sm" onClick={handleCancelExport}>
+                  Annuler
+                </button>
+                <button className="button button-primary button-sm" onClick={handleExport}>
+                  Confirmer
                 </button>
               </div>
-            )}
-          </div>
-        )}
-      </div>
+            </div>
+          ) : (
+            <button
+              className="button button-secondary"
+              onClick={handleExport}
+              disabled={exportStatus.loading || userRole === "anonyme"}
+              aria-label="Exporter les métadonnées"
+            >
+              <FiDownload className="button-icon" />
+              <span>
+                {exportStatus.loading
+                  ? "Export en cours..."
+                  : `Exporter ${userRole === "admin" ? "Complet" : userRole === "editeur" ? "Filtré" : "Anonymisé"}`}
+              </span>
+            </button>
+          )}
+
+          {exportStatus.error && <div className="export-error">{exportStatus.error}</div>}
+        </>
+      )}
     </div>
   )
 }
