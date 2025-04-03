@@ -12,10 +12,13 @@ async function ListeCategories() {
           AND NOT toLower(key) CONTAINS 'LastModifiedBy'
           AND NOT toLower(key) CONTAINS 'LastModifiedAt'
           AND NOT toLower(key) CONTAINS 'isPrivate'
+<<<<<<< HEAD
           AND NOT toLower(key) CONTAINS 'date_création'
           AND NOT toLower(key) CONTAINS 'date_creation'
           AND NOT toLower(key) CONTAINS 'description'
           AND NOT toLower(key) CONTAINS 'title'
+=======
+>>>>>>> a5cb895 (push intermediaire, travail sur le #)
           RETURN DISTINCT key
         `);
     

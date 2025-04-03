@@ -1230,8 +1230,54 @@ body.dark .marker-form {
 .role-info {
   display: flex;
   align-items: center;
+<<<<<<< HEAD
   gap: 0.5rem;
   margin-top: 0.5rem;
+=======
+  padding: 0.75rem;
+  background-color: var(--light-gray);
+  border-radius: var(--radius-sm);
+}
+
+.add-tag-form {
+  background-color: var(--light-gray);
+  padding: 1rem;
+  border-radius: var(--radius-sm);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .add-tag-form {
+    grid-template-columns: 2fr 1fr 1fr;
+    align-items: end;
+  }
+}
+
+.color-input {
+  width: 100%;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+/* Add these new styles to your existing CSS file */
+
+.text-source-tabs {
+  display: flex;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.text-source-tab {
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+>>>>>>> a5cb895 (push intermediaire, travail sur le #)
   color: var(--text-muted);
   font-size: 0.85rem;
 }
@@ -1532,13 +1578,6 @@ body.dark .fallback-warning {
   background-color: white;
 }
 
-.annotation-dropdown {
-  position: absolute;
-  background-color: white;
-  border: 1px solid black;
-  padding: 5px;
-  z-index: 10;
-}
 
 .annotation-button {
   margin: 2px;
@@ -2455,4 +2494,5 @@ body.dark .permission-request {
   font-size: 2.5rem;
   color: var(--primary-color);
 }
+
 
