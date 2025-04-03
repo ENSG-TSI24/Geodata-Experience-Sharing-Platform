@@ -1193,12 +1193,6 @@ body.dark .marker-form {
 
 /* Add these new styles to your existing CSS file */
 
-/* Text Annotator Enhancements */
-.text-area {
-  min-height: 100px;
-  resize: vertical;
-}
-
 .text-source-tabs {
   display: flex;
   margin-bottom: 1rem;
@@ -1746,13 +1740,6 @@ body.dark .private-card {
   background-color: white;
 }
 
-.annotation-dropdown {
-  position: absolute;
-  background-color: white;
-  border: 1px solid black;
-  padding: 5px;
-  z-index: 10;
-}
 
 .annotation-button {
   margin: 2px;
@@ -1770,4 +1757,5 @@ body.dark .private-card {
   justify-content: space-between;
   
 }
+
 

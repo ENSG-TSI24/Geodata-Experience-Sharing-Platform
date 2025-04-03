@@ -9,6 +9,9 @@ async function ListeCategories() {
           UNWIND keys(n) AS key 
           WITH key 
           WHERE NOT toLower(key) CONTAINS 'createdby'
+          AND NOT toLower(key) CONTAINS 'LastModifiedBy'
+          AND NOT toLower(key) CONTAINS 'LastModifiedAt'
+          AND NOT toLower(key) CONTAINS 'isPrivate'
           RETURN DISTINCT key
         `);
     
