@@ -1,5 +1,6 @@
-0 - .env dans backend <br>
-1 - npm install ( racine là oul il y a package json  ) <br>
-2 - npm run build ( compiler le react ) à chaque fois que tu modifier le front ) : peu importe ( d'être dans  src / )  <br>
-3 - tu pars dans monapp/backend ici tu fais node server.js pour appeler application <br>
-4 - tu pars dans localhost:5000 <br>
+0 - .env dans racine <br>
+1- si 1e fois ou changement tu fais docker-compose up --build -d / sinon docker-compose up -d ( pour que terminal soit libre ) <br>
+2 - tu pars dans localhost:5000 <br>
+3 - pour arrêter : docker-compose down <br>
+
+
