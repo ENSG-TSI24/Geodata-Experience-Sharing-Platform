@@ -7,6 +7,7 @@ const userRoutes = require("./routes/userRoutes");
 const dataRoutes = require("./routes/dataRoutes");
 const solutionRoutes = require ("./routes/SolutionRoutes");
 const listeRoutes = require ("./routes/ListeRoutes");
+const organizationRoutes = require("./routes/organizationRoutes");
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/data", dataRoutes);
 app.use("/api/solutions", solutionRoutes);
 app.use("/api/listes", listeRoutes);
+app.use("/api/organizations", organizationRoutes);
 
 // path to React application
 app.get("*", (req, res) => {

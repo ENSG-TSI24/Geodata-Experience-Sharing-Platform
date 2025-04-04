@@ -1,20 +1,26 @@
 "use client"
 
 import { useState } from "react"
-import { FiUser, FiHome, FiShield, FiInfo } from "react-icons/fi"
+import { FiUser, FiHome, FiShield, FiInfo, FiLogIn, FiUserPlus } from "react-icons/fi"
+import { useNavigate } from "react-router-dom"
 
 function LoginForm({ onLogin }) {
-  const [full_name, setFullName] = useState("")
+  const [nom, setNom] = useState("")
+  const [prenom, setPrenom] = useState("")
   const [organization, setOrganization] = useState("")
   const [role, setRole] = useState("editeur") // Default to editeur role now
   const [rememberMe, setRememberMe] = useState(false)
   const [errors, setErrors] = useState({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [loginError, setLoginError] = useState("")
+  const navigate = useNavigate()
 
   // Validate form fields before submission
   const validate = () => {
     const newErrors = {}
     if (role !== "anonyme") {
-      if (!full_name.trim()) newErrors.full_name = "Nom complet requis"
+      if (!nom.trim()) newErrors.nom = "Nom requis"
+      if (!prenom.trim()) newErrors.prenom = "Prénom requis"
       if (!organization.trim()) newErrors.organization = "Organisation requise"
     }
     setErrors(newErrors)
@@ -26,12 +32,46 @@ function LoginForm({ onLogin }) {
     e.preventDefault()
     if (!validate()) return
 
+    setIsSubmitting(true)
+    setLoginError("")
+
     try {
+      // Combine nom and prenom for full_name
+      const full_name = `${prenom} ${nom}`.trim()
+
       // For anonymous users, use default values
       const userData = {
         full_name: role === "anonyme" ? "Utilisateur Anonyme" : full_name,
         organization: role === "anonyme" ? "Non spécifié" : organization,
         fonction: role,
+      }
+
+      // If not anonymous, check if user exists in database
+      if (role !== "anonyme") {
+        const checkResponse = await fetch("/api/users/check", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ full_name: userData.full_name }),
+        })
+
+        const checkResult = await checkResponse.json()
+
+        if (!checkResponse.ok) {
+          throw new Error(checkResult.error || "Erreur serveur")
+        }
+
+        if (!checkResult.exists) {
+          setLoginError("Utilisateur non trouvé. Veuillez vous inscrire d'abord.")
+          setIsSubmitting(false)
+          return
+        }
+
+        // Check if role matches
+        if (checkResult.role !== userData.fonction) {
+          setLoginError(`Rôle incorrect. Votre rôle est "${checkResult.role}".`)
+          setIsSubmitting(false)
+          return
+        }
       }
 
       const response = await fetch("/api/users/login", {
@@ -53,13 +93,19 @@ function LoginForm({ onLogin }) {
       }
     } catch (error) {
       console.error("Échec login:", error)
-      setErrors({ submit: error.message })
+      setLoginError(error.message)
+    } finally {
+      setIsSubmitting(false)
     }
+  }
+
+  const handleRegisterClick = () => {
+    navigate("/register")
   }
 
   return (
     <div className="login-container">
-      <div className="login-card">
+      <div className="login-card slide-in">
         <div className="login-header">
           <div className="logo">📊</div>
           <h2>Smart Data Experiences' Sharing Platform</h2>
@@ -67,23 +113,44 @@ function LoginForm({ onLogin }) {
         </div>
 
         <form className="login-form" onSubmit={handleSubmit}>
-          <div className={`form-group ${errors.full_name ? "has-error" : ""}`}>
-            <label htmlFor="full_name">
+          <div className={`form-group ${errors.prenom ? "has-error" : ""}`}>
+            <label htmlFor="prenom">
               <FiUser className="input-icon" />
-              Nom complet
+              Prénom
               {role !== "anonyme" && <span className="required-field">*</span>}
             </label>
             <input
-              id="full_name"
+              id="prenom"
               type="text"
-              value={full_name}
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Votre nom et prénom"
-              aria-invalid={!!errors.full_name}
+              value={prenom}
+              onChange={(e) => setPrenom(e.target.value)}
+              placeholder="Votre prénom"
+              aria-invalid={!!errors.prenom}
               disabled={role === "anonyme"}
               required={role !== "anonyme"}
+              className="text-input"
             />
-            {errors.full_name && <div className="error-message">{errors.full_name}</div>}
+            {errors.prenom && <div className="error-message">{errors.prenom}</div>}
+          </div>
+
+          <div className={`form-group ${errors.nom ? "has-error" : ""}`}>
+            <label htmlFor="nom">
+              <FiUser className="input-icon" />
+              Nom
+              {role !== "anonyme" && <span className="required-field">*</span>}
+            </label>
+            <input
+              id="nom"
+              type="text"
+              value={nom}
+              onChange={(e) => setNom(e.target.value)}
+              placeholder="Votre nom"
+              aria-invalid={!!errors.nom}
+              disabled={role === "anonyme"}
+              required={role !== "anonyme"}
+              className="text-input"
+            />
+            {errors.nom && <div className="error-message">{errors.nom}</div>}
           </div>
 
           <div className={`form-group ${errors.organization ? "has-error" : ""}`}>
@@ -98,7 +165,7 @@ function LoginForm({ onLogin }) {
               value={organization}
               onChange={(e) => setOrganization(e.target.value)}
               placeholder="Votre organisation"
-              aria-invalid={!!errors.organization}
+              className="text-input"
               disabled={role === "anonyme"}
               required={role !== "anonyme"}
             />
@@ -144,11 +211,19 @@ function LoginForm({ onLogin }) {
             </label>
           </div>
 
-          {errors.submit && <div className="form-error">{errors.submit}</div>}
+          {loginError && <div className="error-message">{loginError}</div>}
 
-          <button type="submit" className="login-button">
-            Connexion
+          <button type="submit" className="login-button" disabled={isSubmitting}>
+            <FiLogIn className="button-icon" />
+            {isSubmitting ? "Connexion en cours..." : "Connexion"}
           </button>
+
+          <div className="auth-links">
+            <button type="button" className="link-button" onClick={handleRegisterClick}>
+              <FiUserPlus className="button-icon" />
+              Nouveau utilisateur ? Créer un compte
+            </button>
+          </div>
         </form>
       </div>
     </div>
