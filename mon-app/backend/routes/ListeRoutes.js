@@ -1,5 +1,5 @@
 const express = require('express');
-const { ListeCategories } = require('../neo4jDatabase/ListingOperations');
+const { ListeCategories,ListeValues } = require('../neo4jDatabase/ListingOperations');
 
 const router = express.Router();
 
@@ -11,6 +11,17 @@ router.get('/categories', async (req, res) => {
     const categories = await ListeCategories();
     res.json(categories);
     console.log(categories);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+router.get('/values/:propriete', async (req, res) => {
+  try {
+    const { propriete } = req.params;
+    const values = await ListeValues(propriete);
+    res.json(values);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
