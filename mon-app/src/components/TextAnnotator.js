@@ -14,8 +14,8 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const [categories, setCategories] = useState([]);
   const [categoryColors, setCategoryColors] = useState({});
-  const [filteredCategories, setFilteredCategories] = useState([]);
   const [notification, setNotification] = useState(null);
+<<<<<<< HEAD
 <<<<<<< HEAD
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState(null);
@@ -26,6 +26,12 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [propertyStartPos, setPropertyStartPos] = useState(-1);
 >>>>>>> a5cb895 (push intermediaire, travail sur le #)
+=======
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState(null);
+  const [showValuesDropdown, setShowValuesDropdown] = useState(false);
+  const [values, setValues] = useState([]);
+>>>>>>> 1e3520d (gestion complete du # avec autocompletion)
   const [propertyMode, setPropertyMode] = useState({
     active: false,
     name: null,
@@ -33,12 +39,17 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
     bracketEndPos: -1
   });
 <<<<<<< HEAD
+<<<<<<< HEAD
   const [propertySearch, setPropertySearch] = useState('');
   const [valueSearch, setValueSearch] = useState('');
 =======
   const [activeProperty, setActiveProperty] = useState(null);
   const [propertyRange, setPropertyRange] = useState({ start: -1, end: -1 });
 >>>>>>> a5cb895 (push intermediaire, travail sur le #)
+=======
+  const [propertySearch, setPropertySearch] = useState('');
+  const [valueSearch, setValueSearch] = useState('');
+>>>>>>> 1e3520d (gestion complete du # avec autocompletion)
   const [storageStatus, setStorageStatus] = useState({ 
     loading: false, 
     error: null, 
@@ -310,7 +321,6 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
 =======
     const textarea = textAreaRef.current;
     const cursorPos = textarea.selectionStart;
-    const textBeforeCursor = text.slice(0, cursorPos);
   
     // Sortie du mode propriété si on est après le ] final
     if (propertyMode.active && cursorPos > propertyMode.bracketEndPos) {
@@ -324,16 +334,26 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   
     // Gestion du #
     if (event.key === '#') {
+      event.preventDefault();
       setPropertyMode({
         active: true,
         name: null,
         startPos: cursorPos,
         bracketEndPos: -1
       });
+      setPropertySearch('');
+      
+      const rect = textarea.getBoundingClientRect();
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      
+      setDropdownPosition({
+        top: rect.top + scrollTop + 30,
+        left: rect.left + 10 + (cursorPos * 8),
+      });
       setShowDropdown(true);
     }
   
-    // Gestion de la touche ] pour fermer le mode propriété
+    
     if (propertyMode.active && event.key === ']' && !propertyMode.name) {
       setPropertyMode(prev => ({
         ...prev,
@@ -345,24 +365,53 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   const handlePropertySelect = (propertyName) => {
     const textarea = textAreaRef.current;
     const cursorPos = textarea.selectionStart;
-    
-    // Insérer le format #[property[]] et placer le curseur entre les crochets
-    const newText = text.slice(0, propertyMode.startPos) + 
-                   `#${propertyName}[]` + 
-                   text.slice(cursorPos);
-    
-    setText(newText);
-    setPropertyMode(prev => ({
-      ...prev,
-      name: propertyName,
-      bracketEndPos: propertyMode.startPos + propertyName.length + 2
-    }));
-    setShowDropdown(false);
   
-    // Positionner le curseur entre les crochets
+    // Vérifier si la propriété est déjà présente dans le texte pour éviter les doublons
+    if (!text.includes(`#${propertyName}[]`)) {
+      // Insérer `#Propriété[]` dans le texte
+      const newText = text.slice(0, cursorPos) + `#${propertyName}[]` + text.slice(cursorPos);
+      setText(newText);
+  
+      // Définir la propriété sélectionnée
+      setSelectedProperty(propertyName);
+      setShowDropdown(false);
+      setValueSearch(''); 
+  
+      fetch(`/api/listes/values/${propertyName}`)
+        .then(response => response.json())
+        .then(data => {
+          setValues(data);
+          setShowValuesDropdown(true);
+        })
+        .catch(error => console.error("Erreur de récupération des valeurs:", error));
+  
+     
+      setTimeout(() => {
+        const newCursorPos = cursorPos + propertyName.length + 2;
+        textarea.setSelectionRange(newCursorPos, newCursorPos);
+        textarea.focus();
+      }, 0);
+    }
+  };
+
+  const handleValueSelect = (value) => {
+    const textarea = textAreaRef.current;
+    const cursorPos = textarea.selectionStart;
+    const propertyStartPos = text.lastIndexOf(`#${selectedProperty}[`);
+  
+    
+    const newText = text.slice(0, propertyStartPos) +
+                    `#${selectedProperty}[${value}` +
+                    text.slice(cursorPos);
+  
+    setText(newText);
+    setShowValuesDropdown(false);
+  
+    // Positionner le curseur après la valeur
     setTimeout(() => {
-      const pos = propertyMode.startPos + propertyName.length + 2;
-      textarea.setSelectionRange(pos, pos);
+      const newCursorPos = propertyStartPos + selectedProperty.length + value.length + 3; // #Propriété[valeur]
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+      textarea.focus();
     }, 0);
   };
 
@@ -380,8 +429,20 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
       });
     }
   };
-  
 
+  const handleTextSelection = () => {
+    // Désactivé pour empêcher les annotations par sélection de texte
+    return;
+  };
+
+  const filteredProperties = categories.filter(category => 
+    category.toLowerCase().includes(propertySearch.toLowerCase())
+  );
+
+  const filteredValues = Array.isArray(values)
+  ? values.filter(value => value.id?.toLowerCase().includes(valueSearch.toLowerCase()))
+  : [];
+  
   const handlePublish = async () => {
     if (text.trim() !== '' && title.trim() !== '') {
       try {
@@ -389,40 +450,35 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
         const propertyRegex = /#([^\[\]]+)\[([^\[\]]*)\]/g;
         let match;
         const properties = {};
-        
+  
         while ((match = propertyRegex.exec(text)) !== null) {
-          properties[match[1]] = match[2]; // { Nom: "valeur" }
+          const propName = match[1].replace(/^#/, '');  // Supprimer le # au début de la propriété
+          properties[propName] = match[2]; // { Nom: "valeur" }
         }
-
+  
         // Création de l'objet à envoyer
         const newText = {
           Title: title,
           Proprietees: { 
             description: text,
-            ...properties,  // Ajout des propriétés détectées
-            ...Object.fromEntries(
-              annotations.map(ann => [
-                ann.label, 
-                text.substring(ann.start, ann.end)
-              ])
-            )
+            ...properties  // Ajout des propriétés détectées
           },
         };
-
+  
         console.log("Données envoyées :", newText); // Debug
-
+  
         await handleStoreMetadata(newText);
         setGlobalDataset([...globalDataset, newText]);
         setText('');
         setTitle('');
-        setAnnotations([]);
         showNotification("Texte publié avec succès", "success");
       } catch (error) {
         showNotification(`Erreur: ${error.message}`, "error");
       }
     }
-};
+  };
 
+<<<<<<< HEAD
   const handleTextSelection = () => {
     const textarea = textAreaRef.current;
     const start = textarea.selectionStart;
@@ -504,6 +560,8 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   };
   
 >>>>>>> a5cb895 (push intermediaire, travail sur le #)
+=======
+>>>>>>> 1e3520d (gestion complete du # avec autocompletion)
   const renderAnnotatedText = () => {
     if (!text) return null;
   
@@ -512,10 +570,14 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
     const propertyRegex = /(#([^\[]+)\[([^\]]*)\])/g;
   
 <<<<<<< HEAD
+<<<<<<< HEAD
     // Détecter toutes les propriétés format #Nom[value]
 =======
     // 1. Détecter toutes les propriétés format #Nom[value]
 >>>>>>> a5cb895 (push intermediaire, travail sur le #)
+=======
+    // Détecter toutes les propriétés format #Nom[value]
+>>>>>>> 1e3520d (gestion complete du # avec autocompletion)
     const propMatches = [];
     let match;
     while ((match = propertyRegex.exec(text)) !== null) {
@@ -529,6 +591,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
       });
     }
   
+<<<<<<< HEAD
 <<<<<<< HEAD
     // Rendu
     propMatches.forEach((marker, i) => {
@@ -553,12 +616,19 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
     // 4. Rendu
     allMarkers.forEach((marker, i) => {
 >>>>>>> a5cb895 (push intermediaire, travail sur le #)
+=======
+    // Rendu
+    propMatches.forEach((marker, i) => {
+>>>>>>> 1e3520d (gestion complete du # avec autocompletion)
       // Texte avant le marqueur
       if (marker.start > lastPos) {
         elements.push(text.substring(lastPos, marker.start));
       }
   
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1e3520d (gestion complete du # avec autocompletion)
       // Property format: #Nom[value]
       elements.push(
         <span key={`prop-${i}`}>
@@ -569,6 +639,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
             borderRadius: '12px'
           }}>
             {marker.value}
+<<<<<<< HEAD
           </span>
           <span style={{ color: '#999' }}>]</span>
         </span>
@@ -606,6 +677,12 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
         );
       }
 >>>>>>> a5cb895 (push intermediaire, travail sur le #)
+=======
+          </span>
+          <span style={{ color: '#999' }}>]</span>
+        </span>
+      );
+>>>>>>> 1e3520d (gestion complete du # avec autocompletion)
   
       lastPos = marker.end;
     });
@@ -658,21 +735,28 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
     setText('');
     setTitle('');
 <<<<<<< HEAD
+<<<<<<< HEAD
     setShowDropdown(false);
     setShowValuesDropdown(false);
 =======
     setAnnotations([]);
 >>>>>>> a5cb895 (push intermediaire, travail sur le #)
+=======
+>>>>>>> 1e3520d (gestion complete du # avec autocompletion)
   };
 
   return (
     <div ref={containerRef}>
       <div className='entete-annot'>
 <<<<<<< HEAD
+<<<<<<< HEAD
         <h2>Créer un retour d'experience</h2>
 =======
         <h1>Description de la métadonnée</h1>
 >>>>>>> a5cb895 (push intermediaire, travail sur le #)
+=======
+        <h2>Créer un retour d'experience</h2>
+>>>>>>> 1e3520d (gestion complete du # avec autocompletion)
         <FiArrowDownCircle size={50} className="button-icon" id="deplie" onClick={HideDiv}></FiArrowDownCircle>
       </div>
       <div id="big-div">
@@ -745,6 +829,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
 
 =======
           {/* Textarea invisible pour la saisie */}
+<<<<<<< HEAD
            <textarea
         ref={textAreaRef}
         value={text}
@@ -765,6 +850,27 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
         placeholder="Tapez votre texte ici..."
       />
 >>>>>>> a5cb895 (push intermediaire, travail sur le #)
+=======
+          <textarea
+            ref={textAreaRef}
+            value={text}
+            onChange={handleInputChange}
+            onSelect={handleTextSelection}
+            onKeyDown={handleKeyDown}
+            style={{
+              width: '100%',
+              minHeight: '150px',
+              padding: '10px',
+              border: '1px solid #ddd',
+              borderRadius: '4px',
+              fontSize: '16px',
+              backgroundColor: 'rgba(255,255,255,0.9)',
+              zIndex: 1,
+              position: 'relative'
+            }}
+            placeholder="Tapez votre texte ici (utilisez # pour ajouter une annotation et [ ] pour encapsuler l'annotation)..."
+          />
+>>>>>>> 1e3520d (gestion complete du # avec autocompletion)
         </div>
 
         <div className="action-buttons">
@@ -820,6 +926,9 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
         
         {showDropdown && (
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 1e3520d (gestion complete du # avec autocompletion)
           <div
             className="annotation-dropdown"
             style={{
@@ -866,6 +975,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
             )}
           </div>
         )}
+<<<<<<< HEAD
 
         {showValuesDropdown && (
           <div
@@ -957,6 +1067,53 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
               </button>
             ))}
 >>>>>>> a5cb895 (push intermediaire, travail sur le #)
+=======
+
+        {showValuesDropdown && (
+          <div
+            className="annotation-dropdown"
+            style={{
+              position: 'absolute',
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              backgroundColor: '#fff',
+              border: '1px solid #ccc',
+              borderRadius: '5px',
+              padding: '5px',
+              maxHeight: '20vh',
+              maxWidth: '30vh',
+              overflowY: 'auto',
+              boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+              zIndex: 1000
+            }}
+          >
+            <input
+              type="text"
+              autoFocus
+              placeholder={`Rechercher une valeur pour ${selectedProperty}...`}
+              value={valueSearch}
+              onChange={(e) => setValueSearch(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '5px',
+                marginBottom: '5px',
+                boxSizing: 'border-box'
+              }}
+            />
+            {filteredValues.length > 0 ? (
+              filteredValues.map((val) => (
+                <button
+                  key={val.id}
+                  className="annotation-button"
+                  onClick={() => handleValueSelect(val.id)}
+                >
+                  {val.id}
+                </button>
+              ))
+            ) : (
+              <div style={{ padding: '5px', color: '#666' }}>Aucune valeur trouvée</div>
+            )}
+>>>>>>> 1e3520d (gestion complete du # avec autocompletion)
           </div>
         )}
 

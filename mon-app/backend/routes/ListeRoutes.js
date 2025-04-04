@@ -1,5 +1,9 @@
 const express = require('express');
+<<<<<<< HEAD
 const { ListeCategories, ListeValues } = require('../neo4jDatabase/ListingOperations');
+=======
+const { ListeCategories,ListeValues } = require('../neo4jDatabase/ListingOperations');
+>>>>>>> 1e3520d (gestion complete du # avec autocompletion)
 
 const router = express.Router();
 
@@ -16,6 +20,10 @@ router.get('/categories', async (req, res) => {
   }
 });
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1e3520d (gestion complete du # avec autocompletion)
 router.get('/values/:propriete', async (req, res) => {
   try {
     const { propriete } = req.params;
