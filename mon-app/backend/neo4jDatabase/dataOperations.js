@@ -4,9 +4,20 @@ const driver = require('./driver');
 async function createDataNode(data, userFullName) {
   const session = driver.session();
   try {
+    
     console.log('Création du noeud avec:', { data, userFullName });
-    // Création du noeud Donnee avec annotations de liste deroulante
-
+   
+    const checkTitle = await session.run(
+      `MATCH (d:Donnee {Title: $title})
+       RETURN d LIMIT 1`,
+      { title: data.Title }
+    );
+    
+    if (checkTitle.records.length > 0) {
+      const error = new Error('Un enregistrement avec ce titre existe déjà');
+      error.code = 'DUPLICATE_TITLE';
+      throw error;
+    }
     const dataProps = {
       ...data,
       date_creation: new Date().toISOString()

@@ -330,6 +330,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
         startPos: -1,
         bracketEndPos: -1
       });
+      
     }
   
     // Gestion du #
@@ -345,10 +346,11 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
       
       const rect = textarea.getBoundingClientRect();
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
       
       setDropdownPosition({
         top: rect.top + scrollTop + 30,
-        left: rect.left + 10 + (cursorPos * 8),
+        left: rect.left + scrollLeft
       });
       setShowDropdown(true);
     }
@@ -736,6 +738,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
     setTitle('');
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     setShowDropdown(false);
     setShowValuesDropdown(false);
 =======
@@ -743,6 +746,10 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
 >>>>>>> a5cb895 (push intermediaire, travail sur le #)
 =======
 >>>>>>> 1e3520d (gestion complete du # avec autocompletion)
+=======
+    setShowDropdown(false);
+    setShowValuesDropdown(false);
+>>>>>>> 971587e (version textannotator a merge)
   };
 
   return (
@@ -777,12 +784,16 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
         </div>
         
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 971587e (version textannotator a merge)
         <div className="text-editor-container"  style={{
               width: '100%',
               maxWidth: '700px',
               margin: 0
             }}>
           
+<<<<<<< HEAD
           <div
             ref={previewRef}
             className="text-preview"          
@@ -793,11 +804,17 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
             ref={previewRef}
             className="text-preview"
 >>>>>>> a5cb895 (push intermediaire, travail sur le #)
+=======
+          <div
+            ref={previewRef}
+            className="text-preview"          
+>>>>>>> 971587e (version textannotator a merge)
             onClick={() => textAreaRef.current.focus()}
           >
             {renderAnnotatedText()}
           </div>
           
+<<<<<<< HEAD
 <<<<<<< HEAD
           <textarea
             ref={textAreaRef}
@@ -851,26 +868,40 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
       />
 >>>>>>> a5cb895 (push intermediaire, travail sur le #)
 =======
+=======
+>>>>>>> 971587e (version textannotator a merge)
           <textarea
             ref={textAreaRef}
             value={text}
             onChange={handleInputChange}
             onSelect={handleTextSelection}
             onKeyDown={handleKeyDown}
+            wrap="soft"
             style={{
-              width: '100%',
-              minHeight: '150px',
+              width: '100%',        
+              maxWidth: '100%',
+              minHeight: '30vh',
               padding: '10px',
               border: '1px solid #ddd',
               borderRadius: '4px',
               fontSize: '16px',
+              resize: 'none',
+              whiteSpace: 'pre-wrap',         
+              wordBreak: 'break-word',       
+              overflowWrap: 'break-word',     
+              boxSizing: 'border-box',     
               backgroundColor: 'rgba(255,255,255,0.9)',
+              overflow: 'auto',
               zIndex: 1,
               position: 'relative'
             }}
             placeholder="Tapez votre texte ici (utilisez # pour ajouter une annotation et [ ] pour encapsuler l'annotation)..."
           />
+<<<<<<< HEAD
 >>>>>>> 1e3520d (gestion complete du # avec autocompletion)
+=======
+
+>>>>>>> 971587e (version textannotator a merge)
         </div>
 
         <div className="action-buttons">
@@ -1111,7 +1142,16 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
                 </button>
               ))
             ) : (
-              <div style={{ padding: '5px', color: '#666' }}>Aucune valeur trouvée</div>
+              <button
+              onClick={() => handleValueSelect(valueSearch)}
+              style={{
+                backgroundColor: '#4CAF50',
+                color: 'white',
+                width: '100%'
+              }}
+            >
+              Confirmer {valueSearch}
+            </button>
             )}
 >>>>>>> 1e3520d (gestion complete du # avec autocompletion)
           </div>
