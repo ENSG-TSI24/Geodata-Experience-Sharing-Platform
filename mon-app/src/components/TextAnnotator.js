@@ -101,11 +101,16 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
         })
       });
   
+      const result = await response.json();
+      
       if (!response.ok) {
+        // Si le backend a renvoyé une erreur avec un message
+        if (result.error) {
+          throw new Error(result.error);
+        }
         throw new Error(`Erreur HTTP: ${response.status}`);
       }
       
-      const result = await response.json();
       setStorageStatus({ loading: false, error: null, success: true });
       setTimeout(() => setStorageStatus({ loading: false, error: null, success: false }), 3000);
       return result;
@@ -127,6 +132,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
         startPos: -1,
         bracketEndPos: -1
       });
+      
     }
   
     // Gestion du #
@@ -142,10 +148,11 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
       
       const rect = textarea.getBoundingClientRect();
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
       
       setDropdownPosition({
         top: rect.top + scrollTop + 30,
-        left: rect.left + 10 + (cursorPos * 8),
+        left: rect.left + scrollLeft
       });
       setShowDropdown(true);
     }
@@ -368,6 +375,8 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   const handleReset = () => {
     setText('');
     setTitle('');
+    setShowDropdown(false);
+    setShowValuesDropdown(false);
   };
 
   return (
@@ -393,36 +402,48 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
           />
         </div>
         
-        <div className="text-editor-container">
-          {/* Prévisualisation avec annotations */}
+        <div className="text-editor-container"  style={{
+              width: '100%',
+              maxWidth: '700px',
+              margin: 0
+            }}>
+          
           <div
             ref={previewRef}
-            className="text-preview"
+            className="text-preview"          
             onClick={() => textAreaRef.current.focus()}
           >
             {renderAnnotatedText()}
           </div>
           
-          {/* Textarea invisible pour la saisie */}
           <textarea
             ref={textAreaRef}
             value={text}
             onChange={handleInputChange}
             onSelect={handleTextSelection}
             onKeyDown={handleKeyDown}
+            wrap="soft"
             style={{
-              width: '100%',
-              minHeight: '150px',
+              width: '100%',        
+              maxWidth: '100%',
+              minHeight: '30vh',
               padding: '10px',
               border: '1px solid #ddd',
               borderRadius: '4px',
               fontSize: '16px',
+              resize: 'none',
+              whiteSpace: 'pre-wrap',         
+              wordBreak: 'break-word',       
+              overflowWrap: 'break-word',     
+              boxSizing: 'border-box',     
               backgroundColor: 'rgba(255,255,255,0.9)',
+              overflow: 'auto',
               zIndex: 1,
               position: 'relative'
             }}
             placeholder="Tapez votre texte ici (utilisez # pour ajouter une annotation et [ ] pour encapsuler l'annotation)..."
           />
+
         </div>
 
         <div className="action-buttons">
@@ -566,7 +587,16 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
                 </button>
               ))
             ) : (
-              <div style={{ padding: '5px', color: '#666' }}>Aucune valeur trouvée</div>
+              <button
+              onClick={() => handleValueSelect(valueSearch)}
+              style={{
+                backgroundColor: '#4CAF50',
+                color: 'white',
+                width: '100%'
+              }}
+            >
+              Confirmer {valueSearch}
+            </button>
             )}
           </div>
         )}
