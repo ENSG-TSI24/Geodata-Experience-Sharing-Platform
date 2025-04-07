@@ -27,7 +27,6 @@ const propertyOptions = [
   { value: "Date", label: "Date" },
   { value: "Source", label: "Source" },
   { value: "Problème", label: "Problème" },
-  { value: "Date_création", label: "Date création" },
   { value: "Date_modification", label: "Date modification" },
 ]
 
