@@ -3,7 +3,7 @@ import { FiArrowDownCircle, FiDownload, FiUpload } from "react-icons/fi";
 
 function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   const [text, setText] = useState('');
-  const [title, setTitle] = useState('TEST_TITRE');
+  const [title, setTitle] = useState('');
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const [categories, setCategories] = useState([]);
   const [categoryColors, setCategoryColors] = useState({});
