@@ -34,6 +34,124 @@ async function createUser_and_OrganisationNodes(full_name, organization, fonctio
   }
 }
 
+// Check if user exists in the database
+async function checkUserExists(full_name) {
+  const session = driver.session()
+  try {
+    const result = await session.run(
+      `MATCH (u:Utilisateur {full_name: $full_name})
+       RETURN u.full_name AS username, u.fonction AS role`,
+      { full_name },
+    )
+
+    if (result.records.length === 0) {
+      return { exists: false }
+    }
+
+    return {
+      exists: true,
+      username: result.records[0].get("username"),
+      role: result.records[0].get("role"),
+    }
+  } catch (error) {
+    console.error("Erreur checkUserExists", error)
+    throw new Error("Échec vérification utilisateur")
+  } finally {
+    await session.close()
+  }
+}
+
+// Register a new user
+async function registerUser(full_name, email, organization, isNewOrganization, role, reason, nom, prenom) {
+  const session = driver.session()
+  try {
+    // Check if user already exists
+    const userExists = await checkUserExists(full_name)
+    if (userExists.exists) {
+      throw new Error("Un utilisateur avec ce nom existe déjà")
+    }
+
+    // Create user node
+    let result
+
+    if (role === "admin") {
+      // For admin requests, create user with pending_admin role and create permission request
+      result = await session.run(
+        `CREATE (u:Utilisateur {
+          full_name: $full_name,
+          nom: $nom,
+          prenom: $prenom,
+          email: $email,
+          fonction: "pending_admin",  // Special status for pending admin approval
+          nombre_metadonnees: 0,
+          date_creation: datetime()
+        })
+        WITH u
+        MATCH (o:Organisme {name: $organization})
+        MERGE (u)-[:APPARTIENT_A]->(o)
+        WITH u
+        CREATE (p:PermissionRequest {
+          currentRole: "editeur",
+          requestedRole: "admin",
+          reason: $reason,
+          status: "pending",
+          date: datetime()
+        })
+        CREATE (u)-[:A_DEMANDE]->(p)
+        RETURN u, p`,
+        {
+          full_name,
+          nom,
+          prenom,
+          email,
+          organization,
+          reason,
+        },
+      )
+    } else {
+      // For regular users, create with requested role
+      result = await session.run(
+        `CREATE (u:Utilisateur {
+          full_name: $full_name,
+          nom: $nom,
+          prenom: $prenom,
+          email: $email,
+          fonction: $role,
+          nombre_metadonnees: 0,
+          date_creation: datetime()
+        })
+        WITH u
+        MERGE (o:Organisme {name: $organization})
+        MERGE (u)-[:APPARTIENT_A]->(o)
+        RETURN u`,
+        {
+          full_name,
+          nom,
+          prenom,
+          email,
+          organization,
+          role,
+        },
+      )
+    }
+
+    if (result.records.length === 0) {
+      throw new Error("Échec de création utilisateur")
+    }
+
+    return {
+      success: true,
+      user: result.records[0].get("u").properties,
+      role: role === "admin" ? "editeur (admin en attente)" : role,
+    }
+  } catch (error) {
+    console.error("Erreur registerUser", error)
+    throw new Error(`Échec inscription: ${error.message}`)
+  } finally {
+    await session.close()
+  }
+}
+
 // I have done this so asto increment the count each time a user creates data
 async function incrementUserMetadataCount(full_name) {
   const session = driver.session()
@@ -264,8 +382,11 @@ async function respondToPermissionRequest(requestId, approved, respondedBy) {
       await session.run(
         `MATCH (u:Utilisateur)-[:A_DEMANDE]->(p:PermissionRequest) 
          WHERE id(p) = $requestId
-         SET u.fonction = $newRole`,
-        { requestId: Number.parseInt(requestId), newRole: request.requestedRole },
+         SET u.fonction = $newRole,
+             p.responseDate = datetime(),
+             p.respondedBy = $respondedBy
+         RETURN u`,
+        { requestId: Number.parseInt(requestId), newRole: request.requestedRole, respondedBy },
       )
     }
 
@@ -337,5 +458,7 @@ module.exports = {
   getUserPermissionRequests,
   respondToPermissionRequest,
   AddCommentary,
+  checkUserExists,
+  registerUser,
 }
 

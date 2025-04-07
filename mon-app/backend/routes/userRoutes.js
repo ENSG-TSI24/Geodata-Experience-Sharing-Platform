@@ -8,6 +8,8 @@ const {
   getAllPermissionRequests,
   getUserPermissionRequests,
   respondToPermissionRequest,
+  checkUserExists,
+  registerUser,
 } = require("../neo4jDatabase/userOperations")
 const router = express.Router()
 
@@ -22,6 +24,34 @@ router.post("/login", async (req, res) => {
     res
       .status(500)
       .json({ error: error.message, details: process.env.NODE_ENV === "development" ? error.stack : undefined })
+  }
+})
+
+// Check if user exists
+router.post("/check", async (req, res) => {
+  try {
+    const { full_name } = req.body
+    const result = await checkUserExists(full_name)
+    res.json(result)
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+      details: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    })
+  }
+})
+
+// Register new user
+router.post("/register", async (req, res) => {
+  try {
+    const { full_name, nom, prenom, email, organization, isNewOrganization, role, reason } = req.body
+    const result = await registerUser(full_name, email, organization, isNewOrganization, role, reason, nom, prenom)
+    res.json(result)
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+      details: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    })
   }
 })
 
