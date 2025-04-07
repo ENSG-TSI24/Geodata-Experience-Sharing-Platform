@@ -2105,6 +2105,7 @@ body.dark .permission-request {
 
 .error-message {
   display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 0.5rem;
   background-color: rgba(231, 76, 60, 0.1);
@@ -2136,4 +2137,16 @@ body.dark .permission-request {
   flex-direction: column;
   gap: 1.5rem;
 }
+
+.entete-annot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  
+}
+
+
+
+
+
 
