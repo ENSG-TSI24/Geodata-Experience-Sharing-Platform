@@ -5,9 +5,11 @@ const { incrementUserMetadataCount } = require('../neo4jDatabase/userOperations'
 const router = express.Router();
 
 router.post('/store-metadata', async (req, res) => {
-  console.log('Requête reçue:', req.body);
+  
   try {
     const { data, userFullName } = req.body;
+    console.log('Requête reçue:', req.body);
+    console.log('username : ',userFullName);
 
     if (!data || !userFullName) {
       console.error('Données manquantes');
