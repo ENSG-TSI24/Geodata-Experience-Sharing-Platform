@@ -9,6 +9,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
 =======
 function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   const [text, setText] = useState('');
+  const [title, setTitle] = useState('');
   const [title, setTitle] = useState('TEST_TITRE');
 >>>>>>> a5cb895 (push intermediaire, travail sur le #)
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
@@ -270,10 +271,6 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
     }
   };
 
-  const handleTextSelection = () => {
-    // Désactivé pour empêcher les annotations par sélection de texte
-    return;
-  };
 
   const filteredProperties = categories.filter(category => 
     category.toLowerCase().includes(propertySearch.toLowerCase())
@@ -317,6 +314,244 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
       }
     }
   };
+
+    const textarea = textAreaRef.current;
+    const cursorPos = textarea.selectionStart;
+  
+    // Sortie du mode propriété si on est après le ] final
+    if (propertyMode.active && cursorPos > propertyMode.bracketEndPos) {
+      setPropertyMode({
+        active: false,
+        name: null,
+        startPos: -1,
+        bracketEndPos: -1
+      });
+      
+    }
+  
+    // Gestion du #
+    if (event.key === '#') {
+      event.preventDefault();
+      setPropertyMode({
+        active: true,
+        name: null,
+        startPos: cursorPos,
+        bracketEndPos: -1
+      });
+      setPropertySearch('');
+      
+      const rect = textarea.getBoundingClientRect();
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
+      const scrollLeft = window.scrollX || document.documentElement.scrollLeft;
+      
+      setDropdownPosition({
+        top: rect.top + scrollTop + 30,
+        left: rect.left + scrollLeft
+      });
+      setShowDropdown(true);
+    }
+  
+    
+    if (propertyMode.active && event.key === ']' && !propertyMode.name) {
+      setPropertyMode(prev => ({
+        ...prev,
+        bracketEndPos: cursorPos + 1
+      }));
+    }
+  };
+
+  const handlePropertySelect = (propertyName) => {
+    const textarea = textAreaRef.current;
+    const cursorPos = textarea.selectionStart;
+  
+    // Vérifier si la propriété est déjà présente dans le texte pour éviter les doublons
+    if (!text.includes(`#${propertyName}[]`)) {
+      // Insérer `#Propriété[]` dans le texte
+      const newText = text.slice(0, cursorPos) + `#${propertyName}[]` + text.slice(cursorPos);
+      setText(newText);
+  
+      // Définir la propriété sélectionnée
+      setSelectedProperty(propertyName);
+      setShowDropdown(false);
+      setValueSearch(''); 
+  
+      fetch(`/api/listes/values/${propertyName}`)
+        .then(response => response.json())
+        .then(data => {
+          setValues(data);
+          setShowValuesDropdown(true);
+        })
+        .catch(error => console.error("Erreur de récupération des valeurs:", error));
+  
+     
+      setTimeout(() => {
+        const newCursorPos = cursorPos + propertyName.length + 2;
+        textarea.setSelectionRange(newCursorPos, newCursorPos);
+        textarea.focus();
+      }, 0);
+    }
+  };
+
+  const handleValueSelect = (value) => {
+    const textarea = textAreaRef.current;
+    const cursorPos = textarea.selectionStart;
+    const propertyStartPos = text.lastIndexOf(`#${selectedProperty}[`);
+  
+    
+    const newText = text.slice(0, propertyStartPos) +
+                    `#${selectedProperty}[${value}` +
+                    text.slice(cursorPos);
+  
+    setText(newText);
+    setShowValuesDropdown(false);
+  
+    // Positionner le curseur après la valeur
+    setTimeout(() => {
+      const newCursorPos = propertyStartPos + selectedProperty.length + value.length + 3; // #Propriété[valeur]
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+      textarea.focus();
+    }, 0);
+  };
+
+  const handleInputChange = (e) => {
+    setText(e.target.value);
+  
+    // Si en mode propriété et qu'on tape après le ], sortir du mode
+    const cursorPos = e.target.selectionStart;
+    if (propertyMode.active && cursorPos > propertyMode.bracketEndPos && propertyMode.bracketEndPos !== -1) {
+      setPropertyMode({
+        active: false,
+        name: null,
+        startPos: -1,
+        bracketEndPos: -1
+      });
+    }
+  };
+
+
+  const filteredProperties = categories.filter(category => 
+    category.toLowerCase().includes(propertySearch.toLowerCase())
+  );
+
+  const filteredValues = Array.isArray(values)
+  ? values.filter(value => value.id?.toLowerCase().includes(valueSearch.toLowerCase()))
+  : [];
+  
+  const handlePublish = async () => {
+    if (text.trim() !== '' && title.trim() !== '') {
+      try {
+        // Extraction des propriétés format #Nom[valeur]
+        const propertyRegex = /#([^\[\]]+)\[([^\[\]]*)\]/g;
+        let match;
+        const properties = {};
+  
+        while ((match = propertyRegex.exec(text)) !== null) {
+          const propName = match[1].replace(/^#/, '');  // Supprimer le # au début de la propriété
+          properties[propName] = match[2]; // { Nom: "valeur" }
+        }
+  
+        // Création de l'objet à envoyer
+        const newText = {
+          Title: title,
+          Proprietees: { 
+            description: text,
+            ...properties  // Ajout des propriétés détectées
+          },
+        };
+  
+        console.log("Données envoyées :", newText); // Debug
+  
+        await handleStoreMetadata(newText);
+        setGlobalDataset([...globalDataset, newText]);
+        setText('');
+        setTitle('');
+        showNotification("Texte publié avec succès", "success");
+      } catch (error) {
+        showNotification(`Erreur: ${error.message}`, "error");
+      }
+    }
+  };
+
+  const handleTextSelection = () => {
+    const textarea = textAreaRef.current;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentText = textarea.value;
+  
+    // Vérifier si un # est présent dans le texte
+    const hasHash = currentText.includes('#');
+    
+    if (hasHash) {
+      // Trouver la position du dernier #
+      const lastHashPos = currentText.lastIndexOf('#');
+      const cursorPos = textarea.selectionStart;
+      
+      // Si le curseur est après le #, afficher le dropdown des propriétés
+      if (cursorPos > lastHashPos) {
+        const rect = textarea.getBoundingClientRect();
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        
+        setDropdownPosition({
+          top: rect.top + scrollTop + 30,
+          left: rect.left + 10 + (cursorPos * 8), // Approximation de la position du curseur
+        });
+        setShowDropdown(true);
+        return;
+      }
+    }
+  
+    // Gestion normale des sélections de texte pour les annotations
+    if (start !== end) {
+      const selected = currentText.substring(start, end);
+      if (selected.trim().length > 0) {
+        setSelectedText(selected);
+        setSelectionRange({ start, end });
+        
+        const rect = textarea.getBoundingClientRect();
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        
+        setDropdownPosition({
+          top: rect.top + scrollTop + 30,
+          left: rect.left + 10,
+        });
+        setShowDropdown(true);
+      }
+    } else {
+      setShowDropdown(false);
+    }
+  };
+  
+  
+  const handleApplyAnnotation = (category) => {
+    if (selectedText && category) {
+      // Vérifier que le texte sélectionné existe toujours aux mêmes positions
+      const currentSelectedText = text.substring(selectionRange.start, selectionRange.end);
+      if (currentSelectedText !== selectedText) {
+        showNotification("Le texte a été modifié, veuillez resélectionner", "error");
+        return;
+      }
+  
+      // Vérifier les chevauchements
+      const overlap = annotations.some(ann => 
+        (selectionRange.start < ann.end && selectionRange.end > ann.start)
+      );
+      
+      if (!overlap) {
+        setAnnotations([...annotations, {
+          start: selectionRange.start,
+          end: selectionRange.end,
+          label: category,
+          text: selectedText // On stocke le texte annoté
+        }]);
+        setShowDropdown(false);
+        textAreaRef.current.setSelectionRange(selectionRange.end, selectionRange.end);
+        textAreaRef.current.focus();
+      } else {
+        showNotification("Les annotations ne peuvent pas se chevaucher", "error");
+      }
+    }
+  };
+  
 
 =======
     const textarea = textAreaRef.current;
