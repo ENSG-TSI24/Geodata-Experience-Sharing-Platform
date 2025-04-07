@@ -25,7 +25,7 @@ function RegisterForm() {
     const fetchOrganizations = async () => {
       try {
         console.log("Fetching organizations...")
-        const response = await fetch("/api/organizations/list")
+        const response = await fetch("/api/organizations/orgs")
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`)
         }
@@ -285,7 +285,7 @@ function RegisterForm() {
                     <option value="">Sélectionnez une organisation</option>
                     {organizations.map((org) => (
                       <option key={org.id} value={org.name}>
-                        {org.name}
+                        {org.id}
                       </option>
                     ))}
                   </select>

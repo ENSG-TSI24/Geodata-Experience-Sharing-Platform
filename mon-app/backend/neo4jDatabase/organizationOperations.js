@@ -1,4 +1,4 @@
-const driver = require("./driver")
+const driver = require('./driver')
 
 // Get all organizations
 async function getAllOrganizations() {
@@ -6,17 +6,15 @@ async function getAllOrganizations() {
   try {
     console.log("DB: Exécution de la requête pour récupérer les organismes...")
     const result = await session.run(
-      `MATCH (o:Organisme)
-       RETURN o.name AS name, id(o) AS id, o.description AS description
-       ORDER BY o.name`,
+      ` MATCH (n:Organisme) 
+        RETURN DISTINCT n.name AS nom
+        ORDER BY nom`,
     )
 
     console.log("DB: Nombre d'organismes trouvés:", result.records.length)
 
     const organizations = result.records.map((record) => ({
-      id: record.get("id").toString(),
-      name: record.get("name"),
-      description: record.get("description") || "",
+      id: record.get("nom").toString(),
     }))
 
     console.log("DB: Organismes formatés:", organizations)
