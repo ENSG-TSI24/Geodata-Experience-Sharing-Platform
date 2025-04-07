@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { FiUser, FiHome, FiShield, FiInfo, FiLogIn, FiUserPlus } from "react-icons/fi"
 import { useNavigate } from "react-router-dom"
 
@@ -13,7 +13,28 @@ function LoginForm({ onLogin }) {
   const [errors, setErrors] = useState({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [loginError, setLoginError] = useState("")
+  const [organizations, setOrganizations] = useState([])
   const navigate = useNavigate()
+
+  // Fetch organizations on component mount
+  useEffect(() => {
+    const fetchOrganizations = async () => {
+      try {
+        console.log("Fetching organizations for login form...")
+        const response = await fetch("/api/organizations/orgs")
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const data = await response.json()
+        console.log("Organizations fetched successfully:", data)
+        setOrganizations(data)
+      } catch (error) {
+        console.error("Failed to fetch organizations:", error)
+      }
+    }
+
+    fetchOrganizations()
+  }, [])
 
   // Validate form fields before submission
   const validate = () => {
@@ -159,16 +180,21 @@ function LoginForm({ onLogin }) {
               Organisation
               {role !== "anonyme" && <span className="required-field">*</span>}
             </label>
-            <input
+            <select
               id="organization"
-              type="text"
               value={organization}
               onChange={(e) => setOrganization(e.target.value)}
-              placeholder="Votre organisation"
-              className="text-input"
+              className="select-input"
               disabled={role === "anonyme"}
               required={role !== "anonyme"}
-            />
+            >
+              <option value="">Sélectionnez une organisation</option>
+              {organizations.map((org) => (
+                <option key={org.id} value={org.id}>
+                  {org.id}
+                </option>
+              ))}
+            </select>
             {errors.organization && <div className="error-message">{errors.organization}</div>}
           </div>
 

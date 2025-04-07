@@ -251,6 +251,25 @@ function RegisterForm() {
                 {errors.email && <div className="error-message">{errors.email}</div>}
               </div>
 
+              <div className="form-group">
+                <label htmlFor="role">
+                  <FiShield className="input-icon" />
+                  Rôle souhaité
+                </label>
+                <select id="role" value={role} onChange={(e) => setRole(e.target.value)} className="select-input">
+                  <option value="editeur">Éditeur</option>
+                  <option value="admin">Administrateur</option>
+                </select>
+                <div className="role-info">
+                  <FiInfo className="info-icon" />
+                  <small>
+                    {role === "admin"
+                      ? "Accès complet à toutes les fonctionnalités. Nécessite l'approbation d'un administrateur existant avant de pouvoir se connecter."
+                      : "Peut créer et modifier, mais pas supprimer. Accès immédiat après inscription."}
+                  </small>
+                </div>
+              </div>
+
               <div className="form-actions">
                 <button type="button" className="button button-secondary" onClick={() => navigate("/")}>
                   <FiArrowLeft className="button-icon" />
@@ -284,7 +303,7 @@ function RegisterForm() {
                   >
                     <option value="">Sélectionnez une organisation</option>
                     {organizations.map((org) => (
-                      <option key={org.id} value={org.name}>
+                      <option key={org.id} value={org.id}>
                         {org.id}
                       </option>
                     ))}
@@ -346,28 +365,11 @@ function RegisterForm() {
           {/* Step 3: Role and Permissions */}
           {step === 3 && (
             <div className="form-step">
-              <h3 className="step-title">Rôle et Permissions</h3>
+              <h3 className="step-title">
+                {role === "admin" ? "Demande d'accès administrateur" : "Confirmation d'inscription"}
+              </h3>
 
-              <div className="form-group">
-                <label htmlFor="role">
-                  <FiShield className="input-icon" />
-                  Rôle souhaité
-                </label>
-                <select id="role" value={role} onChange={(e) => setRole(e.target.value)} className="select-input">
-                  <option value="editeur">Éditeur</option>
-                  <option value="admin">Administrateur</option>
-                </select>
-                <div className="role-info">
-                  <FiInfo className="info-icon" />
-                  <small>
-                    {role === "admin"
-                      ? "Accès complet à toutes les fonctionnalités. Nécessite l'approbation d'un administrateur existant avant de pouvoir se connecter."
-                      : "Peut créer et modifier, mais pas supprimer. Accès immédiat après inscription."}
-                  </small>
-                </div>
-              </div>
-
-              {role === "admin" && (
+              {role === "admin" ? (
                 <div className={`form-group ${errors.reason ? "has-error" : ""}`}>
                   <label htmlFor="reason">
                     <FiInfo className="input-icon" />
@@ -389,8 +391,18 @@ function RegisterForm() {
                     <FiInfo className="info-icon" />
                     <p>
                       Les demandes d'accès administrateur sont soumises à l'approbation d'un administrateur existant.
-                      Vous ne pourrez pas vous connecter tant que votre demande n'aura pas été approuvée. Vous recevrez
-                      une notification lorsque votre demande aura été traitée.
+                      Vous recevrez une notification lorsque votre demande sera approuvée et pourrez alors vous
+                      connecter.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="form-group">
+                  <div className="admin-request-note" style={{ backgroundColor: "rgba(46, 204, 113, 0.1)" }}>
+                    <FiCheck className="info-icon" style={{ color: "var(--success-color)" }} />
+                    <p>
+                      Vous êtes sur le point de créer un compte avec le rôle d'éditeur. Vous pourrez vous connecter
+                      immédiatement après l'inscription.
                     </p>
                   </div>
                 </div>
