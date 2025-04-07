@@ -209,8 +209,6 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode,
           return marker
         }),
       )
-      setSelectedText("")
-      setActiveMarkerIndex(null)
       setSelectedProperty("")
     }
   }
@@ -367,12 +365,16 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode,
                               </div>
                               {isEditMode && (
                                 <button
-                                  onClick={() => removeProperty(index, key)}
-                                  className="button-icon-only"
-                                  aria-label={`Supprimer la propriété ${key}`}
-                                >
-                                  <FiTrash2 />
-                                </button>
+                                onClick={(e) => {
+                                  e.stopPropagation(); 
+                                  e.preventDefault(); 
+                                  removeProperty(index, key);
+                                }}
+                                className="button-icon-only"
+                                aria-label={`Supprimer la propriété ${key}`}
+                              >
+                                <FiTrash2 />
+                              </button>
                               )}
                             </div>
                           ),
