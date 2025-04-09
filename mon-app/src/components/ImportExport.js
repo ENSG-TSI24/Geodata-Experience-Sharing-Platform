@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiArrowDownCircle, FiDownload, FiUpload } from "react-icons/fi";
 
+//dissocier fonctions d'import/export de texteannotator
 function ImportExport (globalDataset,setGlobalDataset) {
     const [notification, setNotification] = useState(null);
     const fileInputRef = useRef(null);
