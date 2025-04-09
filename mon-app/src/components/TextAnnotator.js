@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiArrowDownCircle, FiDownload, FiUpload } from "react-icons/fi";
+import ImportExport from './ImportExport';
+import MapAdd from './MapAdd';
 
 function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   const [text, setText] = useState('');
@@ -29,7 +31,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   const textAreaRef = useRef(null);
   const previewRef = useRef(null);
   const containerRef = useRef(null);
-  const fileInputRef = useRef(null);
+  
 
   useEffect(() => {
     fetch('/api/listes/categories')
@@ -83,6 +85,11 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
       bigdiv.style.display = "block";
     }
   };
+
+  const hideentetediv = (event) => {
+    const entetediv = document.getElementById("entete-annot");
+    entetediv.style.display = "none";
+  }
 
   const handleStoreMetadata = async (textData) => {
     try {
@@ -268,7 +275,16 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
             ...properties  // Ajout des propriétés détectées
           },
         };
-  
+        if (!properties.Lieu){
+          if (window.confirm("Vous n'avez pas annoté de lieu souhaitez-vous le faire sur la carte ?")) {
+           
+           HideDiv();
+           hideentetediv();
+           <MapAdd></MapAdd>
+          } else {
+            console.log("validé sans carto");
+          }
+        }
         console.log("Données envoyées :", newText); // Debug
   
         await handleStoreMetadata(newText);
@@ -336,43 +352,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
     return elements;
   };
 
-  const exportAnnotations = () => {
-    const dataStr = JSON.stringify(globalDataset, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `text-annotations-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    showNotification("Annotations exportées avec succès", "success");
-  };
-
-  const importAnnotations = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const importedData = JSON.parse(event.target.result);
-        if (Array.isArray(importedData)) {
-          setGlobalDataset(importedData);
-          showNotification("Annotations importées avec succès", "success");
-        } else {
-          showNotification("Format d'annotation invalide", "error");
-        }
-      } catch (error) {
-        showNotification("Échec de l'analyse du fichier importé", "error");
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  const handleReset = () => {
+ const handleReset = () => {
     setText('');
     setTitle('');
     setShowDropdown(false);
@@ -381,7 +361,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
 
   return (
     <div ref={containerRef}>
-      <div className='entete-annot'>
+      <div id="entete-annot">
         <h2>Créer un retour d'experience</h2>
         <FiArrowDownCircle size={50} className="button-icon" id="deplie" onClick={HideDiv}></FiArrowDownCircle>
       </div>
@@ -471,30 +451,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
             Réinitialiser
           </button>
           
-          <button
-            className="button button-sm button-secondary"
-            onClick={exportAnnotations}
-            title="Exporter les annotations"
-          >
-            <FiDownload className="button-icon" />
-            <span>Exporter</span>
-          </button>
-
-          <input
-            type="file"
-            accept=".json"
-            onChange={importAnnotations}
-            ref={fileInputRef}
-            style={{ display: "none" }}
-          />
-          <button
-            className="button button-sm button-secondary"
-            onClick={() => fileInputRef.current.click()}
-            title="Importer des annotations"
-          >
-            <FiUpload className="button-icon" />
-            <span>Importer</span>
-          </button>
+         <ImportExport globalDataset={globalDataset} setGlobalDataset={setGlobalDataset}></ImportExport>
         </div>
         
         {showDropdown && (
