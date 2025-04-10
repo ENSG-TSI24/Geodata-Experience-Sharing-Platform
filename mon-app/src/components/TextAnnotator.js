@@ -277,19 +277,18 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
             ...properties  // Ajout des propriétés détectées
           },
         };
-        if (!properties.Zone_Localisation){
-          if (window.confirm("Vous n'avez pas annoté de zone de localisation souhaitez-vous le faire sur la carte ?")) {
+        // jsp si on fera géocodage donc dans le doute 
+        //if (!properties.Zone_Localisation){
+         alert("Veuillez placez le lieu correspondant à votre retour sur la carte ! ") 
            
            HideDiv();
            hideentetediv();
            setDraftData(newText); 
            setShowMap(true);
-           return;
-          } else {
-            console.log("validé sans carto");
-          }
-        }
-        await finalizePublication(newText);
+           
+       
+        //}
+          //finalizePublication(newText);
       } catch (error) {
         showNotification("Texte publié avec succès", "success");
       }

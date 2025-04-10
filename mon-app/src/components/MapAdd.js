@@ -36,8 +36,8 @@ function MapAdd({ draftData, onComplete, onCancel }) {
         <Popup autoClose={false} closeOnClick={false}>
           <div style={{ padding: '10px' }}>
             <p>Position sélectionnée:</p>
-            <p>Lat: {position.lat.toFixed(4)}</p>
-            <p>Lng: {position.lng.toFixed(4)}</p>
+            <p>Latitude: {position.lat.toFixed(4)}</p>
+            <p>Longitude: {position.lng.toFixed(4)}</p>
             <button className="mode-toggle"
               onClick={() => {
                 setIsSubmitting(true);
