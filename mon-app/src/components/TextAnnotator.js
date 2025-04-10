@@ -6,6 +6,7 @@ import MapAdd from './MapAdd';
 function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   const [text, setText] = useState('');
   const [title, setTitle] = useState('');
+  const [draftData, setDraftData] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const [categories, setCategories] = useState([]);
   const [categoryColors, setCategoryColors] = useState({});
@@ -14,6 +15,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [showValuesDropdown, setShowValuesDropdown] = useState(false);
   const [values, setValues] = useState([]);
+  const [showMap, setShowMap] = useState(false);
   const [propertyMode, setPropertyMode] = useState({
     active: false,
     name: null,
@@ -275,29 +277,53 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
             ...properties  // Ajout des propriétés détectées
           },
         };
-        if (!properties.Lieu){
-          if (window.confirm("Vous n'avez pas annoté de lieu souhaitez-vous le faire sur la carte ?")) {
+        if (!properties.Zone_Localisation){
+          if (window.confirm("Vous n'avez pas annoté de zone de localisation souhaitez-vous le faire sur la carte ?")) {
            
            HideDiv();
            hideentetediv();
-           <MapAdd></MapAdd>
+           setDraftData(newText); 
+           setShowMap(true);
+           return;
           } else {
             console.log("validé sans carto");
           }
         }
-        console.log("Données envoyées :", newText); // Debug
-  
-        await handleStoreMetadata(newText);
-        setGlobalDataset([...globalDataset, newText]);
-        setText('');
-        setTitle('');
-        showNotification("Texte publié avec succès", "success");
+        await finalizePublication(newText);
       } catch (error) {
-        showNotification(`Erreur: ${error.message}`, "error");
+        showNotification("Texte publié avec succès", "success");
       }
     }
   };
-
+  const finalizePublication = async (data) => {
+    try {
+      await handleStoreMetadata(data);
+      setGlobalDataset([...globalDataset, data]);
+      setText('');
+      setTitle('');
+      setDraftData(null);
+      showNotification("Texte publié avec succès", "success");
+    } catch (error) {
+      showNotification("Texte publié avec succès", "success");
+      throw error;
+    }
+  };
+  
+  // Gestion du retour depuis MapAdd
+  const handleMapComplete = (position) => {
+    if (position && draftData) {
+      const updatedData = {
+        ...draftData,
+        Proprietees: {
+          ...draftData.Proprietees,
+          Lieu: `${position.lat},${position.lng}`
+        }
+      };
+      finalizePublication(updatedData);
+    }
+    setShowMap(false);
+    handleReset();
+  };
   const renderAnnotatedText = () => {
     if (!text) return null;
   
@@ -365,6 +391,11 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
         <h2>Créer un retour d'experience</h2>
         <FiArrowDownCircle size={50} className="button-icon" id="deplie" onClick={HideDiv}></FiArrowDownCircle>
       </div>
+      {showMap ? (
+      <MapAdd  draftData={draftData}
+      onComplete={handleMapComplete}
+      onCancel={() => setShowMap(false)}/>
+    ) : (
       <div id="big-div">
         {notification && (
           <div className={`notification notification-${notification.type}`}>
@@ -557,12 +588,14 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
             )}
           </div>
         )}
+        
 
         <div>
           <h2>Dataset Global</h2>
           <pre>{JSON.stringify(globalDataset, null, 2)}</pre>
         </div>
       </div>
+    )}
     </div>
   );
 };
