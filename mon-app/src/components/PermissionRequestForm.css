@@ -1,0 +1,129 @@
+/* Permission Banner */
+.permission-banner {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 2rem;
+    background-color: rgba(231, 76, 60, 0.1);
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--danger-color);
+  }
+  
+  .permission-icon {
+    font-size: 2.5rem;
+    color: var(--danger-color);
+  }
+  
+  .permission-content h3 {
+    margin-bottom: 0.5rem;
+    color: var(--danger-color);
+  }
+  
+  .permission-content p {
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+  }
+
+  /* Permission requests */
+.permission-requests {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .permission-request {
+    background-color: white;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+  }
+  
+  body.dark .permission-request {
+    background-color: var(--primary-light);
+  }
+  
+  .permission-request.pending {
+    border-left: 4px solid #f39c12;
+  }
+  
+  .permission-request.approved {
+    border-left: 4px solid var(--accent-color);
+  }
+  
+  .permission-request.rejected {
+    border-left: 4px solid var(--danger-color);
+  }
+
+  
+
+/* User permissions */
+.user-permissions {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  
+.request-details {
+    padding: 0.75rem;
+  }
+  
+  .request-roles {
+    margin-bottom: 0.75rem;
+  }
+  .role-change {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  .role-arrow {
+    color: var(--text-muted);
+  }
+  
+  
+.request-reason {
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+  }
+  
+  .request-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  
+
+
+.request-header {
+    padding: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .request-date {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-left: 0.5rem;
+  }
+  
+  .request-status {
+    font-size: 0.9rem;
+  }
+  
+  .status-approved {
+    color: var(--accent-color);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+  
+  .status-rejected {
+    color: var(--danger-color);
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
