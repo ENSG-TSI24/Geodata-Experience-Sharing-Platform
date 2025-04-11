@@ -143,9 +143,14 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
       });
       
     }
+
+    if (event.key === 'Escape'){
+      setShowDropdown(false);
+    }
   
     // Gestion du #
     if (event.key === '#') {
+      
       event.preventDefault();
       setPropertyMode({
         active: true,
@@ -164,6 +169,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
         left: rect.left + scrollLeft
       });
       setShowDropdown(true);
+      
     }
   
     
