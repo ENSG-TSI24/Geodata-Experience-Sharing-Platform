@@ -296,60 +296,6 @@ body {
   color: var(--text-muted);
 }
 
-/* Login Form Styles */
-.login-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background-color: #f0f2f5;
-  padding: 1rem;
-}
-
-.info-icon {
-  color: var(--secondary-color);
-}
-
-.login-card {
-  background-color: white;
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
-  width: 100%;
-  max-width: 400px;
-  overflow: hidden;
-}
-
-body.dark .login-card {
-  background-color: var(--primary-light);
-}
-
-.login-header {
-  padding: 2rem;
-  text-align: center;
-  background-color: var(--primary-color);
-  color: var(--text-light);
-}
-
-.logo {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-
-.login-header h2 {
-  margin: 0;
-  font-size: 1.8rem;
-  font-weight: 600;
-}
-
-.login-header p {
-  margin-top: 0.5rem;
-  opacity: 0.8;
-}
-
-.login-form {
-  padding: 2rem;
-}
-
 .form-group {
   margin-bottom: 1.5rem;
 }

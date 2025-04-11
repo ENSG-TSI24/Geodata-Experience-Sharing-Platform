@@ -5,6 +5,7 @@ import { FiMap, FiFileText, FiInfo, FiLogOut, FiMenu, FiX, FiSettings, FiEye, Fi
 import MyButtons from "./MyButtons"
 import AboutPage from "./AboutPage"
 import UserPermissions from "./UserPermissions"
+import "./AdminPanel.css"
 
 // Lazy load components that aren't needed immediately
 const MapAnnotator = lazy(() => import("./MapAnnotator"))
