@@ -166,7 +166,7 @@ function AdminPanel({ full_name, organization, fonction, onLogout }) {
                       userRole={fonction}
                     />
                   ) : (
-                    <TextAnnotator userFullName={full_name} viewMode={viewMode} canEdit={canEdit} canDelete={canDelete} userRole={fonction} />
+                    <TextAnnotator userFullName={full_name} globalDataset={globalDataset} setGlobalDataset={setGlobalDataset} viewMode={viewMode} canEdit={canEdit} canDelete={canDelete} userRole={fonction} />
                   )}
                 </Suspense>
               </div>
