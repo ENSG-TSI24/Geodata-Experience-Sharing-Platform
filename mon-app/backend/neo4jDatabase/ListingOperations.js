@@ -15,6 +15,8 @@ async function ListeCategories() {
         AND key <> 'CreatedBy'
         AND key <>  'Date_création'  
         AND key <>  'date_creation'
+        AND key <>  'description'
+        AND key <>  'Description'
         AND key <>  'Date_modification' 
         AND key <> 'Lieu'
         RETURN DISTINCT key
