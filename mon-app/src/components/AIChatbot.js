@@ -1,14 +1,16 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import "./AIChatbot.css"
 import { FiMessageSquare, FiX, FiEdit3, FiSearch, FiCheckCircle } from "react-icons/fi"
+
 
 const AIChatbot = ({ full_name, organization }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState("")
   const [mode, setMode] = useState(null)
+  const messagesEndRef = useRef(null)
   const toggleChat = () => setIsOpen(!isOpen)
 
   useEffect(() => {
@@ -16,27 +18,33 @@ const AIChatbot = ({ full_name, organization }) => {
     setMessages([
       {
         from: "bot",
-        text: `Bonjour ! Je suis votre assistant - chatbot IA - pour l’analyse et la valorisation de vos retours d’expérience géographiques.
-Je suis disponible 24h/24, 7j/7.
-Avant de commencer, votre demande concerne :`,
+        text: `Bonjour ! Je suis votre assistant - chatbot IA. J'interviens pour vous aider à publier, analyser vos retours d’expérience géographiques, mais également de parcourir d'autres métadonnées rédigés par d'autres utilisateurs de différents organismes.
+ Je suis disponible 24h/24, 7j/7. 
+Avant de commencer , veuillez sélectionner l’une des trois opérations ci-dessus :)`,
       },
     ])
   }, [])
 
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
+    }
+  }, [messages])
+  
   const handleModeSelection = (selectedMode) => {
     setMode(selectedMode)
 
     let modeResponse = ""
     if (selectedMode === "metadata") {
       modeResponse = `Merci pour votre choix !
-Vous avez sélectionné **<FiEdit3 /> Saisie de métadonnées**.
+Vous avez sélectionné: Saisie de métadonnées.
 
 Ce mode vous permet de publier un retour d’expérience sur une donnée géographique que vous avez manipulée. Votre retour sera ajouté à la base sous votre nom (${full_name}) et votre organisation (${organization}).
 
 Rédigez dès maintenant votre retour d’expérience. Décrivez bien la donnée concernée, son contexte, et tout élément utile.`
     } else if (selectedMode === "search") {
       modeResponse = `Merci pour votre choix !
-Vous avez sélectionné **<FiSearch /> Recherche de données**.
+Vous avez sélectionné: Recherche de données.
 
 Ce mode vous permet d’interroger la base de données à graphes existante.
 
@@ -49,7 +57,7 @@ Je peux par exemple :
 Posez-moi votre question !`
     } else if (selectedMode === "check") {
       modeResponse = `Merci pour votre choix !
-Vous avez sélectionné **Vérification / Correction**.
+Vous avez sélectionné: Vérification / Correction.
 
 Ce mode vous permet de vérifier la cohérence de votre retour d’expérience :
 - Lieu cohérent ?
@@ -91,7 +99,7 @@ Envoyez-moi votre texte et je vous aiderai à le corriger si besoin.`
       {isOpen && (
     <div className="chatbot-container">
       <div className="chatbot-header">
-      <h4>Votre Assistant IA</h4>
+      <h4>🤖 Votre Assistant IA 🤖</h4>
         <button onClick={() => handleModeSelection("metadata")}><FiEdit3 />Saisie de métadonnées</button>
         <button onClick={() => handleModeSelection("search")}><FiSearch /> Recherche de données</button>
         <button onClick={() => handleModeSelection("check")}><FiCheckCircle />Vérification / Correction</button>
@@ -103,18 +111,26 @@ Envoyez-moi votre texte et je vous aiderai à le corriger si besoin.`
             {msg.text}
           </div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
 
       <div className="chatbot-input">
-        <input
-          type="text"
-          value={input}
-          placeholder="Écrivez votre message ici..."
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSend()}
-        />
-        <button onClick={handleSend}>Envoyer</button>
-      </div>
+  <div className="chatbot-input-row">
+    <input
+      type="text"
+      maxLength={150}
+      value={input}
+      placeholder="Posez votre question ici"
+      onChange={(e) => setInput(e.target.value)}
+      onKeyDown={(e) => e.key === "Enter" && handleSend()}
+    />
+    <button onClick={handleSend}>Envoyer</button>
+  </div>
+  <div className="char-counter">{input.length} / 150 caractères</div>
+</div>
+
+
+
     </div>
    )}
    </>
