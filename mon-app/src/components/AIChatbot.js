@@ -19,7 +19,9 @@ const AIChatbot = ({ full_name, organization }) => {
       {
         from: "bot",
         text: `Bonjour ! Je suis votre assistant - chatbot IA. J'interviens pour vous aider à publier, analyser vos retours d’expérience géographiques, mais également de parcourir d'autres métadonnées rédigés par d'autres utilisateurs de différents organismes.
- Je suis disponible 24h/24, 7j/7. 
+
+Je suis disponible 24h/24, 7j/7. 
+
 Avant de commencer , veuillez sélectionner l’une des trois opérations ci-dessus :)`,
       },
     ])
@@ -118,7 +120,7 @@ Envoyez-moi votre texte et je vous aiderai à le corriger si besoin.`
   <div className="chatbot-input-row">
     <input
       type="text"
-      maxLength={150}
+      maxLength={1000}
       value={input}
       placeholder="Posez votre question ici"
       onChange={(e) => setInput(e.target.value)}
@@ -126,7 +128,7 @@ Envoyez-moi votre texte et je vous aiderai à le corriger si besoin.`
     />
     <button onClick={handleSend}>Envoyer</button>
   </div>
-  <div className="char-counter">{input.length} / 150 caractères</div>
+  <div className="char-counter">{input.length} / 1000 caractères</div>
 </div>
 
 
