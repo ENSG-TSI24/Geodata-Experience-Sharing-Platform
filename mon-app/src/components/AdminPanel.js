@@ -119,24 +119,7 @@ function AdminPanel({ full_name, organization, fonction, onLogout }) {
           default:
             return (
               <>
-                {viewMode === "search" ? (
-                  // Mode recherche - afficher seulement la barre de recherche
-                  <div className="panel">
-                    <div className="panel-header">
-                      <h2 className="panel-title">Recherche</h2>
-                    </div>
-                    <Suspense fallback={<div className="loading">Chargement...</div>}>
-                      <BarreRecherche 
-                        userFullName={full_name} 
-                        userRole={fonction}
-                        isMap={isMap}
-                      />
-                    </Suspense>
-                  </div>
-                ) : (
-                  // Mode édition - afficher le contenu normal
-                  <div className="panel-container">
-                    <div className="panel">
+
                       <div className="panel-header">
                         <h2 className="panel-title">
                           {isMap ? <FiMap className="icon" /> : <FiFileText className="icon" />}
@@ -171,6 +154,25 @@ function AdminPanel({ full_name, organization, fonction, onLogout }) {
                           </button>
                         </div>
                       </div>
+                {viewMode === "search" ? (
+                  // Mode recherche - afficher seulement la barre de recherche
+                  <div className="panel">
+                    <div className="panel-header">
+                      <h2 className="panel-title">Recherche</h2>
+                    </div>
+                    <Suspense fallback={<div className="loading">Chargement...</div>}>
+                      <BarreRecherche 
+                        userFullName={full_name} 
+                        userRole={fonction}
+                        isMap={isMap}
+                      />
+                    </Suspense>
+                  </div>
+                ) : (
+                  // Mode édition - afficher le contenu normal
+                  <div className="panel-container">
+                    <div className="panel">
+                     
                       <Suspense fallback={<div className="loading">Chargement...</div>}>
                         {isMap ? (
                           <MapAnnotator

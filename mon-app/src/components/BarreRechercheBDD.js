@@ -87,13 +87,14 @@ function BarreRechercheBDD() {
   }
 
   return (
+    <div className="recherche-content">
     <div className="live-search-display p-4 max-w-4xl mx-auto">
       <div className="mb-6">
         <label htmlFor="property-select" className="block mb-2 font-medium text-gray-700">
           Choisir une propriété :
         </label>
         <select
-          id="property-select"
+          id="select-input"
           value={selectedProperty}
           onChange={(e) => {
             setSelectedProperty(e.target.value);
@@ -132,7 +133,7 @@ function BarreRechercheBDD() {
             setSelectedData(null);
           }}
           placeholder="Tapez ici..."
-          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="text-input"
         />
       </div>
 
@@ -187,6 +188,7 @@ function BarreRechercheBDD() {
           )}
         </div>
       )}
+    </div>
     </div>
   );
 }
