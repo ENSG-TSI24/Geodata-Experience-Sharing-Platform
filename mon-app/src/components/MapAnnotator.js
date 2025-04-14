@@ -26,8 +26,7 @@ const propertyOptions = [
   { value: "Droits_usage", label: "Droits usage" },
   { value: "Date", label: "Date" },
   { value: "Source", label: "Source" },
-  { value: "Problème", label: "Problème" },
-  { value: "Date_modification", label: "Date modification" },
+  { value: "Problème", label: "Problème" }
 ]
 
 function AddMarkerOnClick({ setGlobalDataset, userFullName, canEdit, viewMode }) {
@@ -50,7 +49,7 @@ function AddMarkerOnClick({ setGlobalDataset, userFullName, canEdit, viewMode })
           Position: formPosition,
           CreatedBy: userFullName,
           isPrivate: isPrivate,
-          Date_création: new Date().toISOString(),
+          DatePublication_RetourExperience: new Date().toISOString(),
         },
       }
       setGlobalDataset((prevDataset) => [...prevDataset, newMarker])
@@ -202,7 +201,6 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode,
               Proprietes: {
                 ...marker.Proprietes,
                 [property]: selectedText,
-                Date_modification: new Date().toISOString(),
               },
             }
           }
@@ -226,7 +224,6 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode,
             ...marker,
             Proprietes: {
               ...updatedProperties,
-              Date_modification: new Date().toISOString(),
             },
           }
         }
@@ -344,8 +341,7 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode,
                     key !== "Description" &&
                     key !== "CreatedBy" &&
                     key !== "isPrivate" &&
-                    key !== "Date_création" &&
-                    key !== "Date_modification",
+                    key !== "DatePublication_RetourExperience" &&
                 ) && (
                   <div className="popup-section">
                     <div className="popup-label">Propriétés:</div>
@@ -356,8 +352,7 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode,
                           key !== "Description" &&
                           key !== "CreatedBy" &&
                           key !== "isPrivate" &&
-                          key !== "Date_création" &&
-                          key !== "Date_modification" && (
+                          key !== "DatePublication_RetourExperience" && (
                             <div key={key} className="property-item">
                               <div className="property-content">
                                 <span className="property-key">{key}:</span>
@@ -395,22 +390,12 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode,
                         </div>
                       </div>
                     )}
-                    {marker.Proprietes.Date_création && (
+                    {marker.Proprietes.DatePublication_RetourExperience && (
                       <div className="property-item">
                         <div className="property-content">
                           <span className="property-key">Date de création:</span>
                           <span className="property-value">
-                            {new Date(marker.Proprietes.Date_création).toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                    {marker.Proprietes.Date_modification && (
-                      <div className="property-item">
-                        <div className="property-content">
-                          <span className="property-key">Dernière modification:</span>
-                          <span className="property-value">
-                            {new Date(marker.Proprietes.Date_modification).toLocaleString()}
+                            {new Date(marker.Proprietes.DatePublication_RetourExperience).toLocaleString()}
                           </span>
                         </div>
                       </div>
