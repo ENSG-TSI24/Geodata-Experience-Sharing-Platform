@@ -44,7 +44,7 @@ async function extractSchema() {
     }
 
     // 5. Generate prompt content
-    let prompt = `Voici la structure de la base Neo4j :\n\n`;
+    let prompt = `Voici la structure de la base de données :\n\n`;
 
     prompt += `### Nœuds :\n`;
     for (const [label, props] of Object.entries(schema.nodes)) {
