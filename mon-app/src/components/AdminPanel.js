@@ -5,11 +5,13 @@ import { FiMap, FiFileText, FiInfo, FiLogOut, FiMenu, FiX, FiSettings, FiEye, Fi
 import MyButtons from "./MyButtons"
 import AboutPage from "./AboutPage"
 import UserPermissions from "./UserPermissions"
+import AIChatbot from "./AIChatbot"
 
 // Lazy load components that aren't needed immediately
 const MapAnnotator = lazy(() => import("./MapAnnotator"))
 const TextAnnotator = lazy(() => import("./TextAnnotator"))
 const SettingsPage = lazy(() => import("./SettingsPage"))
+
 
 function AdminPanel({ full_name, organization, fonction, onLogout }) {
   const [isMap, setIsMap] = useState(false)
@@ -307,6 +309,8 @@ function AdminPanel({ full_name, organization, fonction, onLogout }) {
       <footer className="app-footer">
         <p>&copy; {new Date().getFullYear()} Plateforme d'Annotation Géographique</p>
       </footer>
+      <AIChatbot />
+
     </div>
   )
 }

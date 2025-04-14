@@ -8,6 +8,8 @@ import AdminPanel from "./components/AdminPanel"
 import LoginForm from "./components/LoginForm"
 import RegisterForm from "./components/RegisterForm"
 import OnboardingTutorial from "./components/OnboardingTutorial"
+import AIChatbot from "./components/AIChatbot"
+
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -127,6 +129,7 @@ function App() {
           </Routes>
         )}
       </div>
+      <AIChatbot />
     </Router>
   )
 }
