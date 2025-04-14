@@ -58,34 +58,26 @@ function BarreRechercheBDD() {
     );
   }
 
-  async function handleSearch(title) {
-    console.log("🏷️ Titre sélectionné :", title);
-    setInputText(title);
-    setSelectedItem(title);
-    
+  async function handleSearch(item) {
     try {
-      const response = await fetch(`/api/listes/values/${selectedProperty}/${title}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      const data = await response.json();
       
-      if (!Array.isArray(data)) {
-        console.warn(`Données invalides reçues pour ${title}:`, data);
-        return;
-      }
+      if (item.properties) {
+        setSelectedItem(item);
+        setSelectedData(item.properties);
+      } 
       
-      if (data[0]?.id?.properties) {
-        setSelectedData(data[0].id.properties);
-      } else {
-        setSelectedData(null);
+      else {
+        const response = await fetch(`/api/listes/values/${selectedProperty}/${item}`);
+        const data = await response.json();
+        if (data[0]?.id?.properties) {
+          setSelectedItem(data[0].id);
+          setSelectedData(data[0].id.properties);
+        }
       }
     } catch (error) {
-      console.error(`Erreur de récupération des valeurs pour ${title}:`, error);
-      setSelectedData(null);
+      console.error("Erreur:", error);
     }
   }
-
   return (
     <div className="recherche-content">
     <div className="live-search-display p-4 max-w-4xl mx-auto">
@@ -137,57 +129,92 @@ function BarreRechercheBDD() {
         />
       </div>
 
-      {/* Liste des résultats */}
-      {!selectedItem && filteredList.length > 0 && (
-        <div className="mb-6">
-          <h3 className="text-lg font-medium mb-2 text-gray-700">Résultats :</h3>
-          <ul className="border border-gray-200 rounded-md shadow divide-y divide-gray-200">
-            {filteredList.map((item, index) => (
-              <li
-                key={index}
+      {/* Liste des résultats sous forme de tableau */}
+{!selectedItem && filteredList.length > 0 && (
+  <div className="mb-6 overflow-x-auto">
+    <h3 className="text-lg font-medium mb-2 text-gray-700">Résultats :</h3>
+    <table className="min-w-full border border-gray-200 rounded-md shadow">
+      <thead className="bg-gray-50">
+        <tr>
+          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Titre</th>
+          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+        </tr>
+      </thead>
+      <tbody className="bg-white divide-y divide-gray-200">
+        {filteredList.map((item, index) => (
+          <tr 
+            key={index}
+            className="hover:bg-blue-50 transition-colors"
+          >
+            <td className="px-4 py-3 whitespace-nowrap">
+              <span className="text-blue-600 font-medium">
+                {item.properties?.Title || item.Title || "Sans titre"}
+              </span>
+            </td>
+            <td className="px-4 py-3 whitespace-nowrap">
+              <button
                 onClick={() => handleSearch(item)}
-                className="py-3 px-4 hover:bg-blue-50 cursor-pointer transition-colors"
+                className="mode-toggle"
               >
-                <div className="flex items-center">
-                  <span className="text-blue-600 hover:text-blue-800 font-medium">
-                    {item}
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
+                Voir détails
+              </button>
+            </td>
+            <td className="px-4 py-3 whitespace-nowrap">
+              <button
+                onClick=""
+                className="mode-toggle view-mode-toggle"
+              >
+                Commenter
+              </button>
+            </td>
+            <td className="px-4 py-3 whitespace-nowrap">
+              <button
+                onClick=""
+                className="button button-secondary"
+              >
+                Exporter
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
 
-      {/* Affichage des données sélectionnées */}
-      {selectedItem && (
-        <div className="mt-6">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium text-gray-700">
-              Données pour : <span className="text-blue-600">{selectedItem}</span>
-            </h3>
-            <button
-              onClick={() => {
-                setSelectedItem(null);
-                setSelectedData(null);
-              }}
-              className="text-sm text-blue-600 hover:text-blue-800"
-            >
-              Retour à la liste
-            </button>
-          </div>
+{/* Affichage des données sélectionnées */}
+{selectedItem && (
+  <div className="mt-6">
+    <div className="flex justify-between items-center mb-4">
+      <h3 className="text-lg font-medium text-gray-700">
+        Détails pour : <span className="text-blue-600">
+          {selectedItem.properties?.Title || selectedItem.Title || selectedItem}
+        </span>
+      </h3>
+      <button
+        onClick={() => {
+          setSelectedItem(null);
+          setSelectedData(null);
+        }}
+        className="mode-toggle"
+      >
+        Retour aux résultats
+      </button>
+    </div>
 
-          {selectedData ? (
-            <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-              <pre className="text-sm text-gray-800 overflow-x-auto">
-                {JSON.stringify(selectedData, null, 2)}
-              </pre>
-            </div>
-          ) : (
-            <p className="text-gray-500">Aucune donnée disponible pour cet élément.</p>
-          )}
-        </div>
-      )}
+    {selectedData ? (
+      <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
+        <h4 className="font-medium mb-2">Données complètes :</h4>
+        <pre className="text-sm text-gray-800 overflow-x-auto">
+          {JSON.stringify(selectedData, null, 2)}
+        </pre>
+      </div>
+    ) : (
+      <p className="text-gray-500">Chargement des données...</p>
+    )}
+  </div>
+)}
+
     </div>
     </div>
   );
