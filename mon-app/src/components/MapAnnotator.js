@@ -341,7 +341,7 @@ function MapAnnotator({ globalDataset, setGlobalDataset, userFullName, viewMode,
                     key !== "Description" &&
                     key !== "CreatedBy" &&
                     key !== "isPrivate" &&
-                    key !== "DatePublication_RetourExperience" &&
+                    key !== "DatePublication_RetourExperience" 
                 ) && (
                   <div className="popup-section">
                     <div className="popup-label">Propriétés:</div>

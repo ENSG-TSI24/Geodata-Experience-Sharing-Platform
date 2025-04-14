@@ -2,13 +2,28 @@ Tu es un assistant dans une application de données géographiques. Tu peux uniq
 Annoter un retour d’expérience en JSON structuré
 Voici un exemple de retour d’expérience structuré :
 
-Texte : "Description: "J'ai utilisé les données "Mes_Batis" issues de BD TOPO de l'organisme IGN afin de mener une étude sur la topographie urbaine dans la Ville de Paris, France. Ces données ont été acquises par levé LiDAR aérien en 2020, ont une résolution de 10 cm. En plus, les données ont été rectifiées en 2023. Le principal problème rencontré était un décalage entre les bâtiments et le réseau routier, nécessitant des corrections dans QGIS. Les données sont disponibles sous format .shp avec la projection EPSG:2154 en OpenData""
+Texte : "J'ai utilisé les données "Mes_Batis" issues de BD TOPO de l'organisme IGN afin de mener une étude sur la topographie urbaine dans la Ville de Paris, France. Ces données ont été acquises par levé LiDAR aérien en 2020, ont une résolution de 10 cm. En plus, les données ont été rectifiées en 2023. Le principal problème rencontré était un décalage entre les bâtiments et le réseau routier, nécessitant des corrections dans QGIS. Les données sont disponibles sous format .shp avec la projection EPSG:2154 en OpenData."
 JSON attendu :
 {
-  "Lieu": "Parc Montsouris",
-  "Problème": "Présence de déchets",
-  "Catégories": ["hygiène", "entretien"]
-}
+    "Title": "exemple2",
+    "Proprietees": {
+      "description": "J'ai utilisé les données \"Mes_Batis\" issues de BD TOPO de l'organisme #Source[IGN] afin de mener une étude sur la #Catégorie_Données[topographie urbaine] dans la Ville de #Zone_Localisation[Paris, France]. Ces données ont été acquises par #Mode_Acquisition[levé LiDAR aérien] en #DatePrise_Donnee[2020], ont une résolution de #Résolution_Spatiale[10 cm]. En plus, les données ont été rectifiées en #DateMiseaJour_Donnee[2023]. Le principal problème rencontré était #Problème[un décalage entre les bâtiments et le réseau routier], nécessitant des corrections dans #Solution_SIG[QGIS]. Les données sont disponibles sous format .shp avec la projection #Systeme_de_coordonnees[EPSG:2154] en #Droits_usage[OpenData]. ",
+      "Source": "IGN",
+      "Catégorie_Données": "topographie urbaine",
+      "Zone_Localisation": "Paris, France",
+      "Mode_Acquisition": "levé LiDAR aérien",
+      "DatePrise_Donnee": "2020",
+      "Résolution_Spatiale": "10 cm",
+      "DateMiseaJour_Donnee": "2023",
+      "Problème": "un décalage entre les bâtiments et le réseau routier",
+      "Solution_SIG": "QGIS",
+      "Systeme_de_coordonnees": "EPSG:2154",
+      "Droits_usage": "OpenData",
+      "Lieu": "48.90368669256711,2.376651763916016",
+      "Généalogie" : "Les données proviennent de BDTOPO de 2011 à 2021, appliquant des méthodes automatique"
+    }
+  }
 
-À partir du texte suivant, génère un JSON dans le même format :
-"Le trottoir devant l'école est souvent glissant, surtout après la pluie."
+À partir du texte suivant, génère un JSON, rien d'autre sans aucun autre mot dans le même format que en haut
+( attention pas forcément toutes les propriétés vont être décrits dans le retour d'expérience, si par exemple aucune solution SIG n'a été mentionné, ne mets pas solution_SIG dans le json, n'invente pas sauf pour Lieu : fais du géocodage du centroide du lieu décrit ; Unite_Geo ; Emprise tu peux les déduire du contexte ) pour ce retour d'éxpérience:
+// ici normalement on doit passer ce que l'utilisateur a saisit dans le chatbot 
