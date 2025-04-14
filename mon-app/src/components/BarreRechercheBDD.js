@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Commentaire from "./Commentaire";
 
-function BarreRechercheBDD() {
+function BarreRechercheBDD(userFullName) {
   const [inputText, setInputText] = useState("");
   const [values, setValues] = useState([]);
   const [filteredList, setFilteredList] = useState([]);
@@ -11,7 +12,11 @@ function BarreRechercheBDD() {
   const [selectedData, setSelectedData] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
+  const [showcomm, setshowcomm] = useState(false);
+  const [selectedItemForComment, setSelectedItemForComment] = useState(null);
 
+
+  console.log(userFullName);
   useEffect(() => {
     fetch('/api/listes/categories')
       .then(response => response.json())
@@ -78,7 +83,16 @@ function BarreRechercheBDD() {
       console.error("Erreur:", error);
     }
   }
+
+  async function Addcomment(item) {
+    console.log("oui commentaire");
+    setSelectedItemForComment(item);
+    setshowcomm(true);
+    
+
+  }
   return (
+    
     <div className="recherche-content">
     <div className="live-search-display p-4 max-w-4xl mx-auto">
       <div className="mb-6">
@@ -132,12 +146,12 @@ function BarreRechercheBDD() {
       {/* Liste des résultats sous forme de tableau */}
 {!selectedItem && filteredList.length > 0 && (
   <div className="mb-6 overflow-x-auto">
-    <h3 className="text-lg font-medium mb-2 text-gray-700">Résultats :</h3>
-    <table className="min-w-full border border-gray-200 rounded-md shadow">
+    <h3>Résultats :</h3>
+    <table>
       <thead className="bg-gray-50">
         <tr>
-          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Titre</th>
-          <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          <th>Titre</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody className="bg-white divide-y divide-gray-200">
@@ -161,7 +175,7 @@ function BarreRechercheBDD() {
             </td>
             <td className="px-4 py-3 whitespace-nowrap">
               <button
-                onClick=""
+                onClick={() => Addcomment(item)}
                 className="mode-toggle view-mode-toggle"
               >
                 Commenter
@@ -214,7 +228,27 @@ function BarreRechercheBDD() {
     )}
   </div>
 )}
+ {showcomm && (
+          <div className="mt-6 p-4 border rounded-lg bg-gray-50">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium">
+                Commentaire pour : {selectedItemForComment?.properties?.Title || selectedItemForComment?.Title}
+              </h3>
+              <button
+                onClick={() => setshowcomm(false)}
+                className="mode-reinit"
+              >
+                Fermer
+              </button>
+            </div>
+            <Commentaire 
+              userFullName={userFullName} donnee={selectedData}
+            />
+ 
+        
 
+    </div>
+ )}
     </div>
     </div>
   );
