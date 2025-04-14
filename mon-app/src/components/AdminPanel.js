@@ -209,9 +209,12 @@ function AdminPanel({ full_name, organization, fonction, onLogout }) {
                       </div>
                     </div>
                   </div>
+
                 )}
               </>
             )}
+            
+               
   }
 
   // Get role badge class
