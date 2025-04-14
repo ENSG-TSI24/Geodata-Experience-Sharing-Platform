@@ -2,7 +2,7 @@ const express = require('express');
 const { AddCommentary } = require('../neo4jDatabase/userOperations'); // Assure-toi que c'est bien le bon chemin
 const router = express.Router();
 
-router.post('/add-commentary', async (req, res) => {
+router.post('/addcommentary', async (req, res) => {
     try {    
         const { username, donnee, solution } = req.body;
         const result = await AddCommentary(username, donnee, solution);

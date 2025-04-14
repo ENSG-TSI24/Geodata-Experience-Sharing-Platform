@@ -24,13 +24,13 @@ async function AddCommentary(username, donnee, solution) {
         console.log('Commentaire ajouté', {
             user: result.records[0].get('u').properties,
             solution: result.records[0].get('s').properties,
-            data: result.records[0].get('d').properties
+            donnee: result.records[0].get('d').properties
         });
 
         return {
             user: result.records[0].get('u'),
             solution: result.records[0].get('s'),
-            data: result.records[0].get('d')
+            donnee: result.records[0].get('d')
         };
 
     } catch (error) {
