@@ -8,178 +8,185 @@ function BarreRechercheBDD() {
   const [filteredList, setFilteredList] = useState([]);
   const [selectedProperty, setSelectedProperty] = useState("Title");
   const [properties, setProperties] = useState(["Title"]);
-  
-  const [selectedData, setSelectedData] = useState({});
-
+  const [selectedData, setSelectedData] = useState(null);
+  const [searchResults, setSearchResults] = useState([]);
+  const [selectedItem, setSelectedItem] = useState(null);
 
   useEffect(() => {
-  fetch('/api/listes/categories')
+    fetch('/api/listes/categories')
       .then(response => response.json())
-        .then(data => {
-          console.log("data" , data);
-          
-          let categories = data.map(category => category.id);
-          categories.push("Title");   
-          setProperties(categories);
-      
-    })
-    .catch(error => console.error('Erreur lors de la récupération des catégories:', error));
+      .then(data => {
+        let categories = data.map(category => category.id);
+        categories.push("Title");   
+        setProperties(categories);
+      })
+      .catch(error => console.error('Erreur lors de la récupération des catégories:', error));
   }, []);
 
   useEffect(() => {
-    fetch(`/api/listes/values/${selectedProperty}`)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        return response.json();
-      })
-      .then((data) => {
-        
-
-        if (!Array.isArray(data)) {
-          console.warn(`⚠️ Données invalides reçues pour ${selectedProperty} :`, data);
-          setValues([]);
-          return;
-        }
-
-        let list = [];
-        
-
-        
-        data.forEach((item, index) => {
-          
-          list.push(item.id);
-        });
-
-        setValues(list);
-
-      })
-      .catch((error) => {
-        console.error("❌ Erreur de récupération des noeuds de la BDD:", error);
-        setValues([]);
-      });
-  }, [selectedProperty]);
-
-  
-  function filteredValues(values, word){
-    let len_word = word.length;
-    let list_filtered = [];
-    let word_lower = word.toLowerCase();
-
-    console.log(values)
-    values.forEach(item => {
-      if (item){
-      let item_lower = item.toLowerCase();
-      
-      if (item_lower.substr(0,len_word) === word_lower){
-      list_filtered.push(item);
-      }}
-    });
-    console.log("dans la fonction : ", list_filtered);
-
-    return list_filtered;
-  }
-
-  
-  function handleChange(e){
-      const value = e.target.value;
-      setSelectedProperty(value);
-      console.log("🔽 Propriété sélectionnée :", value);
-    
-  }
-
-  async function handleClick(title) {
-    console.log("🏷️ Titre sélectionné :", title);
-    setInputText(title);
-    fetch(`/api/listes/values/${selectedProperty}/${title}`)
-        .then(response => {
+    if (selectedProperty) {
+      fetch(`/api/listes/values/${selectedProperty}`)
+        .then((response) => {
           if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
           }
           return response.json();
         })
-        .then(data => {
+        .then((data) => {
           if (!Array.isArray(data)) {
-            console.warn(`Données invalides reçues pour ${title}:`, data);
+            console.warn(`⚠️ Données invalides reçues pour ${selectedProperty} :`, data);
+            setValues([]);
             return;
           }
-          console.log(`Donnees reçues pour  ${title}:`, data[0].id.properties);
-          if (data[0].id.properties){
-          setSelectedData(data[0].id.properties);
-          }
+
+          const list = data.map(item => item.id);
+          setValues(list);
         })
-        .catch(error => {
-          console.error(`Erreur de récupération des valeurs pour ${title}:`, error);
-          // Mettre une liste vide en cas d'erreur pour éviter le crash
+        .catch((error) => {
+          console.error("❌ Erreur de récupération des noeuds de la BDD:", error);
+          setValues([]);
         });
     }
-  
+  }, [selectedProperty]);
+
+  function filteredValues(values, word) {
+    if (!word) return [];
+    
+    const wordLower = word.toLowerCase();
+    return values.filter(item => 
+      item && item.toLowerCase().includes(wordLower)
+    );
+  }
+
+  async function handleSearch(title) {
+    console.log("🏷️ Titre sélectionné :", title);
+    setInputText(title);
+    setSelectedItem(title);
+    
+    try {
+      const response = await fetch(`/api/listes/values/${selectedProperty}/${title}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      
+      if (!Array.isArray(data)) {
+        console.warn(`Données invalides reçues pour ${title}:`, data);
+        return;
+      }
+      
+      if (data[0]?.id?.properties) {
+        setSelectedData(data[0].id.properties);
+      } else {
+        setSelectedData(null);
+      }
+    } catch (error) {
+      console.error(`Erreur de récupération des valeurs pour ${title}:`, error);
+      setSelectedData(null);
+    }
+  }
 
   return (
+    <div className="live-search-display p-4 max-w-4xl mx-auto">
+      <div className="mb-6">
+        <label htmlFor="property-select" className="block mb-2 font-medium text-gray-700">
+          Choisir une propriété :
+        </label>
+        <select
+          id="property-select"
+          value={selectedProperty}
+          onChange={(e) => {
+            setSelectedProperty(e.target.value);
+            setSelectedItem(null);
+            setSelectedData(null);
+          }}
+          className="p-2 border border-gray-300 rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        >
+          <option value="">-- Sélectionnez une propriété --</option>
+          {properties.map((prop, index) => (
+            <option key={index} value={prop}>
+              {prop}
+            </option>
+          ))}
+        </select>
 
-    <div className="live-search-display">
+        {selectedProperty && (
+          <p className="mt-2 text-blue-600">
+            Propriété sélectionnée : <strong>{selectedProperty}</strong>
+          </p>
+        )}
+      </div>
 
-<label htmlFor="property-select" className="block mb-2 font-medium">
-        Choisir une propriété :
-      </label>
-      <select
-        id="property-select"
-        value={selectedProperty}
-        onChange={handleChange}
-        className="p-2 border rounded-md w-full"
-      >
-        <option value="">-- Sélectionnez une propriété --</option>
-        {properties.map((prop, index) => (
-          <option key={index} value={prop}>
-            {prop}
-          </option>
-        ))}
-      </select>
-
-      {selectedProperty && (
-        <p className="mt-2 text-blue-600">
-          🏷️ Propriété sélectionnée : <strong>{selectedProperty}</strong>
-        </p>
-      )}
-      <label htmlFor="live-search" className="block mb-2 font-medium text-lg">
-        Rechercher :
-      </label>
-      <input
-        id="live-search"
-        type="text"
-        value={inputText}
-        onChange={(e) => {
-          console.log("🖊️ Texte tapé :", e.target.value);
-          setInputText(e.target.value);
-          setFilteredList(filteredValues(values, e.target.value));
-          console.log("dans le onchange", filteredList);
-        }}
-        placeholder="Tapez ici..."
-        className="w-full p-2 border rounded-md mb-4"
-      />
+      <div className="mb-6">
+        <label htmlFor="live-search" className="block mb-2 font-medium text-gray-700">
+          Rechercher :
+        </label>
+        <input
+          id="live-search"
+          type="text"
+          value={inputText}
+          onChange={(e) => {
+            setInputText(e.target.value);
+            setFilteredList(filteredValues(values, e.target.value));
+            setSelectedItem(null);
+            setSelectedData(null);
+          }}
+          placeholder="Tapez ici..."
+          className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        />
+      </div>
 
       {/* Liste des résultats */}
-      {filteredList.length > 0 && (
-        <ul className="border rounded-md shadow p-2 bg-white">
-          {filteredList.map((item, index) => (
-            <li
-            key={index}
-            onClick={() => handleClick(item)}
-
-            className="py-1 px-2 hover:bg-blue-100 cursor-pointer"
-          >
-            {item}
-          </li>
-          ))}
-        </ul>
+      {!selectedItem && filteredList.length > 0 && (
+        <div className="mb-6">
+          <h3 className="text-lg font-medium mb-2 text-gray-700">Résultats :</h3>
+          <ul className="border border-gray-200 rounded-md shadow divide-y divide-gray-200">
+            {filteredList.map((item, index) => (
+              <li
+                key={index}
+                onClick={() => handleSearch(item)}
+                className="py-3 px-4 hover:bg-blue-50 cursor-pointer transition-colors"
+              >
+                <div className="flex items-center">
+                  <span className="text-blue-600 hover:text-blue-800 font-medium">
+                    {item}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
-      <p className="text-gray-700 whitespace-pre-wrap mt-4">
-        <strong>Données reçues :</strong><br />
-        {selectedData ? JSON.stringify(selectedData, null, 2) : "Aucune donnée sélectionnée"}
-      </p>
+      {/* Affichage des données sélectionnées */}
+      {selectedItem && (
+        <div className="mt-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-medium text-gray-700">
+              Données pour : <span className="text-blue-600">{selectedItem}</span>
+            </h3>
+            <button
+              onClick={() => {
+                setSelectedItem(null);
+                setSelectedData(null);
+              }}
+              className="text-sm text-blue-600 hover:text-blue-800"
+            >
+              Retour à la liste
+            </button>
+          </div>
 
+          {selectedData ? (
+            <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
+              <pre className="text-sm text-gray-800 overflow-x-auto">
+                {JSON.stringify(selectedData, null, 2)}
+              </pre>
+            </div>
+          ) : (
+            <p className="text-gray-500">Aucune donnée disponible pour cet élément.</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
