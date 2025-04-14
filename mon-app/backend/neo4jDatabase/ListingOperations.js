@@ -4,20 +4,23 @@ const driver = require('./driver');
 async function ListeCategories() {
     const session = driver.session();
     try {
-        const result = await session.run(`
-          MATCH (n:Donnee) 
-          UNWIND keys(n) AS key 
-          WITH key 
-          WHERE NOT toLower(key) CONTAINS 'createdby'
-          AND NOT toLower(key) CONTAINS 'LastModifiedBy'
-          AND NOT toLower(key) CONTAINS 'LastModifiedAt'
-          AND NOT toLower(key) CONTAINS 'isPrivate'
-          AND NOT toLower(key) CONTAINS 'date_création'
-          AND NOT toLower(key) CONTAINS 'date_creation'
-          AND NOT toLower(key) CONTAINS 'description'
-          AND NOT toLower(key) CONTAINS 'title'
-          RETURN DISTINCT key
-        `);
+      const result = await session.run(`
+        MATCH (n:Donnee) 
+        UNWIND keys(n) AS key 
+        WITH key 
+        WHERE key <> 'isPrivate'
+        AND key <> 'Title'
+        AND key <> 'Emprise'
+        AND key <> 'Position'
+        AND key <> 'CreatedBy'
+        AND key <>  'Date_création'  
+        AND key <>  'date_creation'
+        AND key <>  'description'
+        AND key <>  'Description'
+        AND key <>  'Date_modification' 
+        AND key <> 'Lieu'
+        RETURN DISTINCT key
+      `);
     
         return result.records.map(record => ({
           id: record.get('key'),

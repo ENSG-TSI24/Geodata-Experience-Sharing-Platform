@@ -1,9 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiArrowDownCircle, FiDownload, FiUpload } from "react-icons/fi";
+import ImportExport from './ImportExport';
+import MapAdd from './MapAdd';
 
 function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   const [text, setText] = useState('');
   const [title, setTitle] = useState('');
+  const [draftData, setDraftData] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const [categories, setCategories] = useState([]);
   const [categoryColors, setCategoryColors] = useState({});
@@ -12,6 +15,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [showValuesDropdown, setShowValuesDropdown] = useState(false);
   const [values, setValues] = useState([]);
+  const [showMap, setShowMap] = useState(false);
   const [propertyMode, setPropertyMode] = useState({
     active: false,
     name: null,
@@ -29,7 +33,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   const textAreaRef = useRef(null);
   const previewRef = useRef(null);
   const containerRef = useRef(null);
-  const fileInputRef = useRef(null);
+  
 
   useEffect(() => {
     fetch('/api/listes/categories')
@@ -84,6 +88,11 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
     }
   };
 
+  const hideentetediv = (event) => {
+    const entetediv = document.getElementById("entete-annot");
+    entetediv.style.display = "none";
+  }
+
   const handleStoreMetadata = async (textData) => {
     try {
       setStorageStatus({ loading: true, error: null, success: false });
@@ -134,9 +143,14 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
       });
       
     }
+
+    if (event.key === 'Escape'){
+      setShowDropdown(false);
+    }
   
     // Gestion du #
     if (event.key === '#') {
+      
       event.preventDefault();
       setPropertyMode({
         active: true,
@@ -155,6 +169,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
         left: rect.left + scrollLeft
       });
       setShowDropdown(true);
+      
     }
   
     
@@ -268,20 +283,52 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
             ...properties  // Ajout des propriétés détectées
           },
         };
-  
-        console.log("Données envoyées :", newText); // Debug
-  
-        await handleStoreMetadata(newText);
-        setGlobalDataset([...globalDataset, newText]);
-        setText('');
-        setTitle('');
-        showNotification("Texte publié avec succès", "success");
+        // jsp si on fera géocodage donc dans le doute 
+        //if (!properties.Zone_Localisation){
+         alert("Veuillez placez le lieu correspondant à votre retour sur la carte ! ") 
+           
+           HideDiv();
+           hideentetediv();
+           setDraftData(newText); 
+           setShowMap(true);
+           
+       
+        //}
+          //finalizePublication(newText);
       } catch (error) {
-        showNotification(`Erreur: ${error.message}`, "error");
+        showNotification("Texte publié avec succès", "success");
       }
     }
   };
-
+  const finalizePublication = async (data) => {
+    try {
+      await handleStoreMetadata(data);
+      setGlobalDataset([...globalDataset, data]);
+      setText('');
+      setTitle('');
+      setDraftData(null);
+      showNotification("Texte publié avec succès", "success");
+    } catch (error) {
+      showNotification("Texte publié avec succès", "success");
+      throw error;
+    }
+  };
+  
+  // Gestion du retour depuis MapAdd
+  const handleMapComplete = (position) => {
+    if (position && draftData) {
+      const updatedData = {
+        ...draftData,
+        Proprietees: {
+          ...draftData.Proprietees,
+          Lieu: `${position.lat},${position.lng}`
+        }
+      };
+      finalizePublication(updatedData);
+    }
+    setShowMap(false);
+    handleReset();
+  };
   const renderAnnotatedText = () => {
     if (!text) return null;
   
@@ -336,43 +383,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
     return elements;
   };
 
-  const exportAnnotations = () => {
-    const dataStr = JSON.stringify(globalDataset, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `text-annotations-${new Date().toISOString().slice(0, 10)}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    showNotification("Annotations exportées avec succès", "success");
-  };
-
-  const importAnnotations = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const importedData = JSON.parse(event.target.result);
-        if (Array.isArray(importedData)) {
-          setGlobalDataset(importedData);
-          showNotification("Annotations importées avec succès", "success");
-        } else {
-          showNotification("Format d'annotation invalide", "error");
-        }
-      } catch (error) {
-        showNotification("Échec de l'analyse du fichier importé", "error");
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  const handleReset = () => {
+ const handleReset = () => {
     setText('');
     setTitle('');
     setShowDropdown(false);
@@ -381,10 +392,15 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
 
   return (
     <div ref={containerRef}>
-      <div className='entete-annot'>
+      <div id="entete-annot">
         <h2>Créer un retour d'experience</h2>
         <FiArrowDownCircle size={50} className="button-icon" id="deplie" onClick={HideDiv}></FiArrowDownCircle>
       </div>
+      {showMap ? (
+      <MapAdd  draftData={draftData}
+      onComplete={handleMapComplete}
+      onCancel={() => setShowMap(false)}/>
+    ) : (
       <div id="big-div">
         {notification && (
           <div className={`notification notification-${notification.type}`}>
@@ -471,30 +487,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
             Réinitialiser
           </button>
           
-          <button
-            className="button button-sm button-secondary"
-            onClick={exportAnnotations}
-            title="Exporter les annotations"
-          >
-            <FiDownload className="button-icon" />
-            <span>Exporter</span>
-          </button>
-
-          <input
-            type="file"
-            accept=".json"
-            onChange={importAnnotations}
-            ref={fileInputRef}
-            style={{ display: "none" }}
-          />
-          <button
-            className="button button-sm button-secondary"
-            onClick={() => fileInputRef.current.click()}
-            title="Importer des annotations"
-          >
-            <FiUpload className="button-icon" />
-            <span>Importer</span>
-          </button>
+         <ImportExport globalDataset={globalDataset} setGlobalDataset={setGlobalDataset}></ImportExport>
         </div>
         
         {showDropdown && (
@@ -600,12 +593,14 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
             )}
           </div>
         )}
+        
 
         <div>
           <h2>Dataset Global</h2>
           <pre>{JSON.stringify(globalDataset, null, 2)}</pre>
         </div>
       </div>
+    )}
     </div>
   );
 };
