@@ -54,4 +54,27 @@ async function ListeCategories() {
       }
     };
 
-module.exports = {ListeCategories,ListeValues};
+    async function fetchDataFromValue(propriete, value) {
+      const session = driver.session();
+      try {
+        const result = await session.run(`
+          MATCH (d:Donnee)
+          WHERE d[$propriete] = $value
+          RETURN d AS data
+          
+        `, {propriete, value});  
+    
+        return result.records.map(record => ({
+          id: record.get('data'),
+        }));
+      } catch (error) {
+        console.error('Erreur Neo4j:', error);
+        throw new Error('Erreur de récupération des valeurs');
+      } finally {
+        await session.close();
+      }
+    };
+
+    
+
+module.exports = {fetchDataFromValue,ListeCategories,ListeValues};

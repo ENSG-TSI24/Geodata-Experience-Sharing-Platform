@@ -10,6 +10,7 @@ import UserPermissions from "./UserPermissions"
 const MapAnnotator = lazy(() => import("./MapAnnotator"))
 const TextAnnotator = lazy(() => import("./TextAnnotator"))
 const SettingsPage = lazy(() => import("./SettingsPage"))
+const BarreRecherche = lazy(() => import("./BarreRechercheBDD"));
 
 function AdminPanel({ full_name, organization, fonction, onLogout }) {
   const [isMap, setIsMap] = useState(false)
@@ -114,85 +115,106 @@ function AdminPanel({ full_name, organization, fonction, onLogout }) {
             </div>
           </div>
         )
-      case "main":
-      default:
-        return (
-          <>
-            <div className="panel-container">
-              <div className="panel">
-                <div className="panel-header">
-                  <h2 className="panel-title">
-                    {isMap ? <FiMap className="icon" /> : <FiFileText className="icon" />}
-                    {isMap ? "Annotation Carte" : "Annotation Texte"}
-                  </h2>
-                  <div className="panel-actions">
-                    {(fonction === "admin" || fonction === "editeur") && (
-                      <button
-                        className="mode-toggle view-mode-toggle"
-                        onClick={toggleViewMode}
-                        aria-label={viewMode === "edit" ? "Passer en mode recherche" : "Passer en mode édition"}
-                      >
-                        {viewMode === "edit" ? (
-                          <>
-                            <FiEye className="button-icon" />
-                            <span>Mode Recherche</span>
-                          </>
-                        ) : (
-                          <>
-                            <FiEdit className="button-icon" />
-                            <span>Mode Édition</span>
-                          </>
-                        )}
-                      </button>
-                    )}
-                    <button
-                      className="mode-toggle"
-                      onClick={() => setIsMap(!isMap)}
-                      aria-label={isMap ? "Passer en mode texte" : "Passer en mode carte"}
-                    >
-                      {isMap ? "Mode Texte" : "Mode Carte"}
-                    </button>
-                  </div>
-                </div>
-                <Suspense fallback={<div className="loading">Chargement...</div>}>
-                  {isMap ? (
-                    <MapAnnotator
-                      globalDataset={globalDataset}
-                      setGlobalDataset={setGlobalDataset}
-                      userFullName={full_name}
-                      viewMode={viewMode}
-                      canEdit={canEdit}
-                      canDelete={canDelete}
-                      userRole={fonction}
-                    />
-                  ) : (
-                    <TextAnnotator userFullName={full_name} globalDataset={globalDataset} setGlobalDataset={setGlobalDataset} viewMode={viewMode} canEdit={canEdit} canDelete={canDelete} userRole={fonction} />
-                  )}
-                </Suspense>
-              </div>
+        case "main":
+          default:
+            return (
+              <>
 
-              <div className="panel">
-                <div className="panel-header">
-                  <h2 className="panel-title">Aperçu des Données</h2>
-                  {canDelete && viewMode === "edit" && (
-                    <button
-                      className="button button-secondary"
-                      onClick={() => setGlobalDataset([])}
-                      aria-label="Effacer les données"
-                      disabled={globalDataset.length === 0}
-                    >
-                      Effacer
-                    </button>
-                  )}
-                </div>
-                <div className="json-display">
-                  <pre>{JSON.stringify(globalDataset, null, 2)}</pre>
-                </div>
-              </div>
-            </div>
-          </>
-        )
-    }
+                      <div className="panel-header">
+                        <h2 className="panel-title">
+                          {isMap ? <FiMap className="icon" /> : <FiFileText className="icon" />}
+                          {isMap ? "Annotation Carte" : "Annotation Texte"}
+                        </h2>
+                        <div className="panel-actions">
+                          {(fonction === "admin" || fonction === "editeur") && (
+                            <button
+                              className="mode-toggle view-mode-toggle"
+                              onClick={toggleViewMode}
+                              aria-label={viewMode === "edit" ? "Passer en mode recherche" : "Passer en mode édition"}
+                            >
+                              {viewMode === "edit" ? (
+                                <>
+                                  <FiEye className="button-icon" />
+                                  <span>Mode Recherche</span>
+                                </>
+                              ) : (
+                                <>
+                                  <FiEdit className="button-icon" />
+                                  <span>Mode Édition</span>
+                                </>
+                              )}
+                            </button>
+                          )}
+                          <button
+                            className="mode-toggle"
+                            onClick={() => setIsMap(!isMap)}
+                            aria-label={isMap ? "Passer en mode texte" : "Passer en mode carte"}
+                          >
+                            {isMap ? "Mode Texte" : "Mode Carte"}
+                          </button>
+                        </div>
+                      </div>
+                {viewMode === "search" ? (
+                  // Mode recherche - afficher seulement la barre de recherche
+                  <div className="panel">
+                    <div className="panel-header">
+                      <h2 className="panel-title">Recherche</h2>
+                    </div>
+                    <Suspense fallback={<div className="loading">Chargement...</div>}>
+                      <BarreRecherche 
+                        userFullName={full_name} 
+                        userRole={fonction}
+                        isMap={isMap}
+                      />
+                    </Suspense>
+                  </div>
+                ) : (
+                  // Mode édition - afficher le contenu normal
+                  <div className="panel-container">
+                    <div className="panel">
+                     
+                      <Suspense fallback={<div className="loading">Chargement...</div>}>
+                        {isMap ? (
+                          <MapAnnotator
+                            globalDataset={globalDataset}
+                            setGlobalDataset={setGlobalDataset}
+                            userFullName={full_name}
+                            viewMode={viewMode}
+                            canEdit={canEdit}
+                            canDelete={canDelete}
+                            userRole={fonction}
+                          />
+                        ) : (
+                          <TextAnnotator userFullName={full_name} viewMode={viewMode} canEdit={canEdit} canDelete={canDelete} userRole={fonction} />
+                        )}
+                      </Suspense>
+                    </div>
+          
+                    <div className="panel">
+                      <div className="panel-header">
+                        <h2 className="panel-title">Aperçu des Données</h2>
+                        {canDelete && viewMode === "edit" && (
+                          <button
+                            className="button button-secondary"
+                            onClick={() => setGlobalDataset([])}
+                            aria-label="Effacer les données"
+                            disabled={globalDataset.length === 0}
+                          >
+                            Effacer
+                          </button>
+                        )}
+                      </div>
+                      <div className="json-display">
+                        <pre>{JSON.stringify(globalDataset, null, 2)}</pre>
+                      </div>
+                    </div>
+                  </div>
+
+                )}
+              </>
+            )}
+            
+               
   }
 
   // Get role badge class
