@@ -18,7 +18,7 @@ const AIChatbot = ({ full_name, organization }) => {
         from: "bot",
         text: `Bonjour ! Je suis votre assistant - chatbot IA - pour l’analyse et la valorisation de vos retours d’expérience géographiques.
 Je suis disponible 24h/24, 7j/7.
-Avant de commencer, veuillez sélectionner l’une des trois opérations ci-dessus :`,
+Avant de commencer, votre demande concerne :`,
       },
     ])
   }, [])
