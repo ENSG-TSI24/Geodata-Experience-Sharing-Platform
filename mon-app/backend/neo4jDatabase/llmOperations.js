@@ -60,8 +60,8 @@ async function generateMetadataJSON(text, userId) {
     const response = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: session.getHistory(),
-      temperature: 0.2, // I think no need for high temperature otherwise thrre's is a risk of errorrs. 
-      max_tokens: 1000
+      temperature: 0.1, // I think no need for high temperature otherwise thrre's is a risk of errorrs. 
+      max_tokens: 2000
     });
 
     const completion = response.choices[0].message.content;
@@ -102,8 +102,35 @@ async function processMetadataSubmission(text, userId, full_name) {
       };
     }
     
+      // because even if I gave a strict promtp the openAI still sometimes does what he wants
+      function validateLLMOutput(data) {
+        const ALLOWED_PROPERTIES = new Set(["Droits_usage", "Zone_Localisation", "Mode_Acquisition", "Solution_SIG", 
+          "Systeme_de_coordonnees", "Format_Fichier", "Source", "Description", "Position", "Title", "Problème", "Résolution_Spatiale", 
+          "Catégorie_Données", "CreatedBy", "isPrivate", "Degré", "Spécification", "Unite_Geo", "Emprise", "Généalogie", 
+          "DateModification_RetourExperience", "DatePublication_RetourExperience", "DatePrise_Donnee", "DateMiseaJour_Donnee"]);
+      
+        // Filtrer les propriétés non autorisées
+        const filteredProps = {};
+        for (const [key, value] of Object.entries(data.Proprietees)) {
+          if (ALLOWED_PROPERTIES.has(key)) {
+            filteredProps[key] = value;
+          } else {
+            console.warn(`Propriété non autorisée filtrée: ${key}`);
+          }
+        }
+      
+        return {
+          Title: data.Title,
+          Proprietees: filteredProps
+        };
+      }
+      
+      // Utilisation :
+      
+    
     const neo4jReadyData = adaptLLMOutputForNeo4j(metadata);
-    const result = await createDataNode(neo4jReadyData, full_name);
+    const cleanedData = validateLLMOutput(neo4jReadyData);
+    const result = await createDataNode(cleanedData, full_name);
     await incrementUserMetadataCount(full_name);
 
     return {
