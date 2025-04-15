@@ -92,8 +92,18 @@ async function processMetadataSubmission(text, userId, full_name) {
     // Génération du JSON structure
     const metadata = await generateMetadataJSON(text, userId);
 
-    // Stockage dans Neo4j : appel a mes fonctions deja definis 
-    const result = await createDataNode(metadata, full_name);
+    function adaptLLMOutputForNeo4j(llmData) {
+      return {
+        Title: llmData.Title,
+        Description: llmData.Proprietees.description,
+        ...llmData.Proprietees, 
+        
+        Proprietees: undefined
+      };
+    }
+    
+    const neo4jReadyData = adaptLLMOutputForNeo4j(metadata);
+    const result = await createDataNode(neo4jReadyData, full_name);
     await incrementUserMetadataCount(full_name);
 
     return {

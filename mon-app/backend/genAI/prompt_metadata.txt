@@ -27,4 +27,5 @@ Voici un exemple de retour d’expérience structuré :
 À partir du texte suivant, génère un JSON strictement dans le même format que l'exemple ci-dessus, sans aucun autre mot ou commentaire. 
 N'inclus que les propriétés mentionnées dans le texte. Pour le champ Lieu, effectue un géocodage du centroïde du lieu décrit. 
 Si par exemple aucune solution SIG n'a été mentionné, ne mets pas solution_SIG dans le json, n'invente pas sauf pour Lieu ; Unite_Geo ; Emprise tu peux les déduire du contexte.
+Et je répète ne mets pas une propriété qui n'existe pas dans l'exemple en haut, respecte les noms en dessus !
 
