@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
+import "./Commentaire.css";
 function Commentaire({ userFullName, donnee }) {
   const [storageStatus, setStorageStatus] = useState({ 
     loading: false, 
@@ -10,6 +10,8 @@ function Commentaire({ userFullName, donnee }) {
   });
   const [commentText, setCommentText] = useState("");
 
+  // fonction qui retourne l'api permettant de stocker un commentaire avec le user qui commente, 
+  // le texte du commentaire et la donnée associée via le Titre
   const handleStoreComment = async (textData) => {
     console.log("texte : ",textData)
     console.log("user : ",userFullName.userFullName)
@@ -22,11 +24,9 @@ function Commentaire({ userFullName, donnee }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          solution: {
-            Title: textData // Le texte du commentaire
-          },
-          userFullName: userFullName,
-          donnee: donnee // Les données associées
+          solution: textData, 
+          userFullName: userFullName.userFullName,
+          donnee: donnee 
         })
       });
   

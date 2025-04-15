@@ -146,6 +146,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
 
     if (event.key === 'Escape'){
       setShowDropdown(false);
+      setShowValuesDropdown(false);
     }
   
     // Gestion du #
