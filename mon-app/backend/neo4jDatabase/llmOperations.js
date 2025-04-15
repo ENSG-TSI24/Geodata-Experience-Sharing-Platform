@@ -98,6 +98,7 @@ async function processMetadataSubmission(text, userId, full_name) {
         Description: llmData.Proprietees.description,
         ...llmData.Proprietees, 
         
+        
         Proprietees: undefined
       };
     }
@@ -128,9 +129,9 @@ async function processMetadataSubmission(text, userId, full_name) {
       // Utilisation :
       
     
-    const neo4jReadyData = adaptLLMOutputForNeo4j(metadata);
-    const cleanedData = validateLLMOutput(neo4jReadyData);
-    const result = await createDataNode(cleanedData, full_name);
+      const validatedData = validateLLMOutput(metadata);
+      const neo4jReadyData = adaptLLMOutputForNeo4j(validatedData);
+    const result = await createDataNode(neo4jReadyData, full_name);
     await incrementUserMetadataCount(full_name);
 
     return {
