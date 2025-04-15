@@ -5,7 +5,8 @@ async function extractSchema() {
   try {
     const schema = {
       nodes: {},
-      relationships: {}
+      relationships: {},
+      propertyValues: {}   // it's better also to add values of properties so that it facilitates the second option of research
     };
 
     // 1. Get node labels
@@ -16,17 +17,31 @@ async function extractSchema() {
     const relsResult = await session.run(`CALL db.relationshipTypes()`);
     const relTypes = relsResult.records.map(r => r.get('relationshipType'));
 
-    // 3. Infer properties per label
+    // 3. Infer properties and their values per label
     for (const label of labels) {
       const propsResult = await session.run(`
-        MATCH (n:\`${label}\`) RETURN properties(n) AS props ORDER BY props ASC
+        MATCH (n:\`${label}\`) RETURN DISTINCT keys(n) AS props
       `);
       const propsSet = new Set();
       propsResult.records.forEach(record => {
-        const props = record.get('props');
-        Object.keys(props).forEach(key => propsSet.add(key));
+        record.get('props').forEach(key => propsSet.add(key));
       });
       schema.nodes[label] = Array.from(propsSet);
+
+      // Valeurs pour chaque propriété
+      schema.propertyValues[label] = {};
+      for (const prop of schema.nodes[label]) {
+        const valuesResult = await session.run(`
+          MATCH (n:\`${label}\`)
+          WHERE n.\`${prop}\` IS NOT NULL
+          RETURN DISTINCT n.\`${prop}\` AS value
+          LIMIT 50
+        `);
+        
+        schema.propertyValues[label][prop] = valuesResult.records
+          .map(r => r.get('value'))
+          .filter(v => v !== null && v !== undefined);
+      }
     }
 
     // 4. Infer relationship patterns
@@ -51,6 +66,16 @@ async function extractSchema() {
       prompt += `- (:${label}) avec propriétés : ${props.join(', ') || 'Aucune'}\n`;
     }
 
+    prompt += `\n### Valeurs exemplaires :\n`;
+    for (const [label, props] of Object.entries(schema.propertyValues)) {
+      prompt += `- (:${label}) :\n`;
+      for (const [prop, values] of Object.entries(props)) {
+        if (values.length > 0) {
+          prompt += `  - ${prop}: ${values.slice(0, 5).join(', ')}${values.length > 5 ? '...' : ''}\n`;
+        }
+      }
+    } 
+
     prompt += `\n### Relations :\n`;
     for (const rel of Object.keys(schema.relationships)) {
       prompt += `- ${rel}\n`;
@@ -64,7 +89,6 @@ async function extractSchema() {
     console.error('Erreur dans l\'extraction :', err);
   } finally {
     await session.close();
-    await driver.close();
   }
 }
 

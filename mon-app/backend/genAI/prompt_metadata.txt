@@ -19,11 +19,12 @@ Voici un exemple de retour d’expérience structuré :
       "Solution_SIG": "QGIS",
       "Systeme_de_coordonnees": "EPSG:2154",
       "Droits_usage": "OpenData",
-      "Lieu": "48.90368669256711,2.376651763916016",
+      "Lieu": "48.8534,2.3488",
       "Généalogie" : "Les données proviennent de BDTOPO de 2011 à 2021, appliquant des méthodes automatique"
     }
   }
 
-À partir du texte suivant, génère un JSON, rien d'autre sans aucun autre mot dans le même format que en haut
-( attention pas forcément toutes les propriétés vont être décrits dans le retour d'expérience, si par exemple aucune solution SIG n'a été mentionné, ne mets pas solution_SIG dans le json, n'invente pas sauf pour Lieu : fais du géocodage du centroide du lieu décrit ; Unite_Geo ; Emprise tu peux les déduire du contexte ) pour ce retour d'éxpérience:
-// ici normalement on doit passer ce que l'utilisateur a saisit dans le chatbot 
+À partir du texte suivant, génère un JSON strictement dans le même format que l'exemple ci-dessus, sans aucun autre mot ou commentaire. 
+N'inclus que les propriétés mentionnées dans le texte. Pour le champ Lieu, effectue un géocodage du centroïde du lieu décrit. 
+Si par exemple aucune solution SIG n'a été mentionné, ne mets pas solution_SIG dans le json, n'invente pas sauf pour Lieu ; Unite_Geo ; Emprise tu peux les déduire du contexte.
+
