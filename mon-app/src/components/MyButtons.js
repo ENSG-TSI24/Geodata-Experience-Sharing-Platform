@@ -8,9 +8,9 @@ function MyButtons({ canEdit, canDelete, userRole }) {
   const [exportType, setExportType] = useState("json")
   const [exportStatus, setExportStatus] = useState({ loading: false, error: null })
 
-  // Handle metadata import from file (admin only)
+  // Handle metadata import from file (admin and editeur can import)
   const handleImport = () => {
-    if (!canDelete) return // Only admin can import
+    if (!canDelete && userRole !== "editeur") return // Only admin and editeur can import
 
     const input = document.createElement("input")
     input.type = "file"
@@ -171,7 +171,7 @@ function MyButtons({ canEdit, canDelete, userRole }) {
 
   return (
     <div className="button-group">
-      {canDelete && (
+      {(canDelete || userRole === "editeur") && (
         <button className="button button-primary" onClick={handleImport} aria-label="Importer des métadonnées">
           <FiUpload className="button-icon" />
           <span>Importer</span>
