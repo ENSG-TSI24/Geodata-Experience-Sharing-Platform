@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
+import "./Commentaire.css";
 function Commentaire({ userFullName, donnee }) {
   const [storageStatus, setStorageStatus] = useState({ 
     loading: false, 
@@ -22,11 +22,9 @@ function Commentaire({ userFullName, donnee }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          solution: {
-            Title: textData // Le texte du commentaire
-          },
-          userFullName: userFullName,
-          donnee: donnee // Les données associées
+          solution: textData, 
+          userFullName: userFullName.userFullName,
+          donnee: donnee 
         })
       });
   

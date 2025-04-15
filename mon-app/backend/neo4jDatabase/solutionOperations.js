@@ -1,20 +1,20 @@
 const driver = require('./driver');
 
-async function AddCommentary(username, donnee, solution) {
+async function AddCommentary( userFullName, donnee, solution) {
     const session = driver.session();
     try {
-        if (!username || !donnee || !solution) {
+        if (! userFullName || !donnee || !solution) {
             throw new Error('L\'utilisateur, la donnée et la solution sont obligatoires');
         }
 
         const result = await session.run(
-            `MERGE (u:Utilisateur {full_name: $username})
-             MERGE (d:Donnée {name: $donnee})
-             CREATE (s:Solution {text: $solution, created_at: datetime()})
+            `MERGE (u:Utilisateur {full_name: $userFullName})
+             MERGE (d:Donnee {Title: $donnee})
+             CREATE (s:Solution {Title: $solution, created_at: datetime()})
              MERGE (u)-[:A_ECRIT]->(s)
              MERGE (s)-[:CONCERNE]->(d)
              RETURN u, s, d`,
-            { username, donnee, solution }
+            {  userFullName, donnee, solution }
         );
 
         if (result.records.length === 0) {
@@ -22,13 +22,13 @@ async function AddCommentary(username, donnee, solution) {
         }
 
         console.log('Commentaire ajouté', {
-            user: result.records[0].get('u').properties,
+            userFullName: result.records[0].get('u').properties,
             solution: result.records[0].get('s').properties,
             donnee: result.records[0].get('d').properties
         });
 
         return {
-            user: result.records[0].get('u'),
+            userFullName: result.records[0].get('u'),
             solution: result.records[0].get('s'),
             donnee: result.records[0].get('d')
         };
@@ -36,7 +36,7 @@ async function AddCommentary(username, donnee, solution) {
     } catch (error) {
         console.log('Erreur AddCommentary', {
             error: error.message,
-            params: { username, donnee, solution }
+            params: {  userFullName, donnee, solution }
         });
         throw new Error(`Erreur lors de l'ajout du commentaire: ${error.message}`);
     } finally {

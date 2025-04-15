@@ -1,11 +1,11 @@
 const express = require('express');
-const { AddCommentary } = require('../neo4jDatabase/userOperations'); // Assure-toi que c'est bien le bon chemin
+const { AddCommentary } = require('../neo4jDatabase/solutionOperations'); 
 const router = express.Router();
 
 router.post('/addcommentary', async (req, res) => {
     try {    
-        const { username, donnee, solution } = req.body;
-        const result = await AddCommentary(username, donnee, solution);
+        const { userFullName, donnee, solution } = req.body;
+        const result = await AddCommentary(userFullName, donnee, solution);
         res.status(200).json({
             message: 'Commentaire ajouté avec succès',
             data: result

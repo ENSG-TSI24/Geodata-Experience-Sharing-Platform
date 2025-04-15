@@ -1,0 +1,72 @@
+/* Styles généraux du tableau */
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 1.5rem 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+                0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+  
+  /* En-tête du tableau */
+  thead {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  th {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.75rem;
+  }
+  
+  /* Cellules du tableau */
+  td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+  }
+  
+  /* Lignes du tableau */
+  tbody tr {
+    background-color: white;
+  }
+  
+  /* Effet hover sur les lignes */
+  tbody tr:hover {
+    background-color: #f8fafc;
+  }
+  
+  tbody tr:hover td {
+    transform: translateX(2px);
+  }
+  
+  
+  thead tr th:first-child {
+    border-top-left-radius: 0.5rem;
+  }
+  
+  thead tr th:last-child {
+    border-top-right-radius: 0.5rem;
+  }
+  
+  tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 0.5rem;
+  }
+  
+  tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 0.5rem;
+  }
+  
+  .text-blue-600 {
+    color: #2563eb;
+    font-weight: 500;
+  }
+  
+ 
