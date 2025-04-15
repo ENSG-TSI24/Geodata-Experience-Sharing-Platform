@@ -10,6 +10,8 @@ function Commentaire({ userFullName, donnee }) {
   });
   const [commentText, setCommentText] = useState("");
 
+  // fonction qui retourne l'api permettant de stocker un commentaire avec le user qui commente, 
+  // le texte du commentaire et la donnée associée via le Titre
   const handleStoreComment = async (textData) => {
     console.log("texte : ",textData)
     console.log("user : ",userFullName.userFullName)

@@ -17,6 +17,7 @@ function BarreRechercheBDD(userFullName) {
   const [showcomm, setshowcomm] = useState(false);
   const [selectedItemForComment, setSelectedItemForComment] = useState(null);
 
+  // affiche la liste des propriétés pour séléction
   useEffect(() => {
     fetch("/api/listes/categories")
       .then((response) => response.json())
@@ -30,6 +31,7 @@ function BarreRechercheBDD(userFullName) {
       );
   }, []);
 
+  // retourne les valeurs associés à une propriété choisie
   useEffect(() => {
     if (selectedProperty) {
       fetch(`/api/listes/values/${selectedProperty}`)
@@ -61,7 +63,7 @@ function BarreRechercheBDD(userFullName) {
     return values.filter((item) => item && item.toLowerCase().includes(wordLower));
   }
 
-  
+  // Tape dans l'api pour retourner dynamiquement les titre associé à la recherche
   useEffect(() => {
     const timer = setTimeout(async () => {
       if (inputText.length > 1) {
@@ -96,6 +98,7 @@ function BarreRechercheBDD(userFullName) {
     return () => clearTimeout(timer);
   }, [inputText, values, selectedProperty]);
 
+  // Tape dans l'api lorsque on voit les détails et affiche la donnée
   async function handleSearch(item) {
     try {
       if (item.properties) {
@@ -192,7 +195,7 @@ function BarreRechercheBDD(userFullName) {
           )}
         </div>
 
-        {/* Champ de recherche */}
+   
         <div className="mb-6">
           <label htmlFor="live-search" className="block mb-2 font-medium text-gray-700">
             Rechercher :
@@ -208,7 +211,7 @@ function BarreRechercheBDD(userFullName) {
           {isLoading && <p className="text-sm text-gray-500">Recherche en cours...</p>}
         </div>
 
-        {/* Résultats de recherche */}
+     
         {!selectedItem && searchResults.length > 0 && (
           <div className="mb-6 overflow-x-auto">
             <h3>Résultats :</h3>
