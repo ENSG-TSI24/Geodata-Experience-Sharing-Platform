@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import "./AIChatbot.css"
 import { FiMessageSquare, FiX, FiEdit3, FiSearch, FiCheckCircle } from "react-icons/fi"
-import { processMetadataSubmission } from '../../backend/neo4jDatabase/llmOperations';
 
 const AIChatbot = ({ full_name, organization }) => {
   const [isOpen, setIsOpen] = useState(false)
@@ -117,7 +116,17 @@ Envoyez-moi votre texte et je vous aiderai à le corriger si besoin.`
           { from: "bot", text: "Je traite votre retour d'expérience..." },
         ]);
 
-        const result = await processMetadataSubmission(input, full_name, full_name);
+        const response = await fetch('/api/llm/process-metadata', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: input,
+            userId: full_name,
+            full_name
+          })
+        });
+
+        const result = await response.json();
         
         if (result.success) {
           setMessages((prev) => [

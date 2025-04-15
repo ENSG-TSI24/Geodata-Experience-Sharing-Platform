@@ -309,7 +309,7 @@ function AdminPanel({ full_name, organization, fonction, onLogout }) {
       <footer className="app-footer">
         <p>&copy; {new Date().getFullYear()} Plateforme d'Annotation Géographique</p>
       </footer>
-      <AIChatbot />
+      <AIChatbot full_name={full_name} organization={organization}/>
 
     </div>
   )

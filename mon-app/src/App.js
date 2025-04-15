@@ -129,7 +129,7 @@ function App() {
           </Routes>
         )}
       </div>
-      <AIChatbot />
+      <AIChatbot full_name={full_name} organization={organization}/>
     </Router>
   )
 }
