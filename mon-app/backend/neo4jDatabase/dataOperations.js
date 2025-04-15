@@ -20,7 +20,7 @@ async function createDataNode(data, userFullName) {
     }
     const dataProps = {
       ...data,
-      date_creation: new Date().toISOString()
+      DatePublication_RetourExperience: new Date().toISOString()
     };
     delete dataProps.Proprietees;
     const result = await session.run(
