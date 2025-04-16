@@ -3,12 +3,14 @@
 import { useState, useEffect } from "react";
 import Commentaire from "./Commentaire";
 import "./BarreRechercheBDD.css";
+import { TagCloud } from "react-tagcloud";
 
 function BarreRechercheBDD(userFullName) {
   const [inputText, setInputText] = useState("");
   const [values, setValues] = useState([]);
-  const [filteredList, setFilteredList] = useState([]);
+
   const [isTableOpen, setIsTableOpen] = useState(false);
+
   const [selectedProperty, setSelectedProperty] = useState("Title");
   const [properties, setProperties] = useState(["Title"]);
   const [selectedData, setSelectedData] = useState(null);
@@ -18,6 +20,60 @@ function BarreRechercheBDD(userFullName) {
   const [isLoading, setIsLoading] = useState(false);
   const [showcomm, setshowcomm] = useState(false);
   const [selectedItemForComment, setSelectedItemForComment] = useState(null);
+
+  //Nuage
+  const [cloudData,setCloudData] = useState([]);
+  const [isCloudVisible, setIsCloudVisible] = useState(true);
+
+  
+ const [filteredCloudData, setFilteredCloudData] = useState([]);
+
+
+ useEffect(() => {
+  
+
+  if (selectedProperty && cloudData.length) {
+    
+    setIsCloudVisible(false);
+
+    
+    
+    const filteredList = cloudData.filter(item => item.key === selectedProperty);
+    setFilteredCloudData(filteredList);
+      
+    setIsCloudVisible(true);  
+    
+
+      console.log("🎯 Changement de propriété → Filtrage:", selectedProperty, filteredList);
+    
+  } else {
+    setFilteredCloudData([]);
+    setIsCloudVisible(false);
+  }
+
+  
+}, [selectedProperty, cloudData]);
+
+
+
+
+
+  useEffect(() => {
+    fetch("/api/listes/weight")
+      .then((response) => response.json())
+      .then((data) => {
+        const formatted = data.map(item => ({
+          key: item.key,
+          value: item.value,
+          count: item.count,
+        }));
+        setCloudData(formatted);
+      })
+      
+      .catch((error) =>
+        console.error("Erreur lors de la récupération des poids:", error)
+      );
+  }, []);
 
   // affiche la liste des propriétés pour séléction
   useEffect(() => {
@@ -109,6 +165,7 @@ function BarreRechercheBDD(userFullName) {
         );
 
         setSearchResults(results.flat());
+        console.log(searchResults);
         setIsLoading(false);
       } else {
         setSearchResults([]);
@@ -196,6 +253,23 @@ function BarreRechercheBDD(userFullName) {
       <div className="live-search-display p-4 max-w-4xl mx-auto">
         {/* Choix de la propriété */}
         <div className="mb-6">
+
+           <h3>Nuage de Mots</h3>
+              
+           <TagCloud
+            key={selectedProperty + JSON.stringify(filteredCloudData.map(tag => tag.value))}
+            minSize={12}
+            maxSize={35}
+            tags={filteredCloudData}
+            onClick={(tag) => {
+              setInputText(tag.value);
+            }}
+            className={`transition-opacity duration-500 ease-in-out ${isCloudVisible ? "opacity-100" : "opacity-0"}`}
+            />
+
+
+
+
           <label htmlFor="property-select" className="block mb-2 font-medium text-gray-700">
             Choisir une propriété :
           </label>
@@ -203,11 +277,13 @@ function BarreRechercheBDD(userFullName) {
             id="select-input"
             value={selectedProperty}
             onChange={(e) => {
+              console.log(filteredCloudData);
               setSelectedProperty(e.target.value);
               setSelectedItem(null);
               setSelectedData(null);
               setInputText("");
               setSearchResults([]);
+              console.log(e.target.value);
             }}
             className="p-2 border border-gray-300 rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
