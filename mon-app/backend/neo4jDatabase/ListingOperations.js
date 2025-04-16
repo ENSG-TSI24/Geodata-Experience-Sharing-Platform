@@ -151,4 +151,27 @@ return Object.entries(valueCount)
       }
     };
 
-module.exports = {fetchWordWeight,fetchDataFromValue,ListeCategories,ListeValues, getAllNodesWithPosition};
+    async function getCommentariesByTitle(title) {
+      const session = driver.session();
+     try {
+        const result = await session.run(`
+          MATCH (d:Donnee)<-[:CONCERNE]-(s:Solution)<-[:A_ECRIT]-(u:Utilisateur)
+          WHERE d.Title = $title
+          RETURN s.Title AS solutionTitle, u.full_name AS auteur
+
+                    
+        `, {title});  
+    
+        return result.records.map(record => ({
+          data: record.get('solutionTitle'),
+          user: record.get('auteur'),
+        }));
+      } catch (error) {
+        console.error('Erreur Neo4j:', error);
+        throw new Error('Erreur de récupération des valeurs');
+      } finally {
+        await session.close();
+      }
+    };
+
+module.exports = {fetchWordWeight,fetchDataFromValue,ListeCategories,ListeValues, getAllNodesWithPosition, getCommentariesByTitle};
