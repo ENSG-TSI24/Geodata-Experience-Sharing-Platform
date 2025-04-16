@@ -40,8 +40,7 @@
 | **📝 Feedback Management** | Submit/browse data feedback with **AI auto-tagging** (GPT-4) and issue tracking. |  
 | **🌐 Knowledge Graph**    | Neo4j-powered metadata network for visualizing complex geographic relationships. |  
 | **🤖 AI Assistance**      | Natural language Q&A and context-aware metadata suggestions.               |  
-| **🛠️ QGIS Integration**   | Sync datasets and submit feedback directly via QGIS plugin.                |  
-| **🔒 Role-Based Access**  | JWT authentication with roles: *User*, *Admin*, *Researcher*.              |  
+| **🔒 Role-Based Access**  | JWT authentication with roles: *Editeur*, *Admin*.              |  
 
 ---
 
@@ -69,10 +68,6 @@
 #### 4. **Export Data** 📥  
    - Select datasets → Choose *Export* → Download as CSV/Excel.  
 
-#### 5. **QGIS Integration** 🌍  
-   - Install the QGIS plugin → Configure platform URL in settings.  
-   - Sync datasets or submit feedback directly from QGIS.  
-
 ---
 
 ### ⚙️ Configuration  
@@ -93,8 +88,6 @@
 - **File Requirements**:  
   - Formats: CSV, GeoJSON, Excel.  
   - Max size: **500MB**.  
-- **Security**: Data encrypted with AES-256 🔒.  
-- **Backups**: Nightly backups to AWS S3.  
 
 ---
 
