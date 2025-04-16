@@ -10,7 +10,6 @@ import AIChatbot from "./AIChatbot"
 import "./AdminPanel.css"
 
 // Lazy load components that aren't needed immediately
-const MapAnnotator = lazy(() => import("./MapAnnotator"))
 const TextAnnotator = lazy(() => import("./TextAnnotator"))
 const SettingsPage = lazy(() => import("./SettingsPage"))
 const BarreRecherche = lazy(() => import("./BarreRechercheBDD"));
@@ -184,19 +183,9 @@ function AdminPanel({ full_name, organization, fonction, onLogout }) {
                     <div className="panel">
                      
                       <Suspense fallback={<div className="loading">Chargement...</div>}>
-                        {isMap ? (
-                          <MapAnnotator
-                            globalDataset={globalDataset}
-                            setGlobalDataset={setGlobalDataset}
-                            userFullName={full_name}
-                            viewMode={viewMode}
-                            canEdit={canEdit}
-                            canDelete={canDelete}
-                            userRole={fonction}
-                          />
-                        ) : (
-                          <TextAnnotator userFullName={full_name} viewMode={viewMode} canEdit={canEdit} canDelete={canDelete} userRole={fonction} />
-                        )}
+                        
+                      <TextAnnotator userFullName={full_name} viewMode={viewMode} canEdit={canEdit} canDelete={canDelete} userRole={fonction} />
+                
                       </Suspense>
                     </div>
           

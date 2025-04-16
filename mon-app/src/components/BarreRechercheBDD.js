@@ -3,19 +3,77 @@
 import { useState, useEffect } from "react";
 import Commentaire from "./Commentaire";
 import "./BarreRechercheBDD.css";
+import { TagCloud } from "react-tagcloud";
 
 function BarreRechercheBDD(userFullName) {
   const [inputText, setInputText] = useState("");
   const [values, setValues] = useState([]);
-  const [filteredList, setFilteredList] = useState([]);
+
+  const [isTableOpen, setIsTableOpen] = useState(false);
+
   const [selectedProperty, setSelectedProperty] = useState("Title");
   const [properties, setProperties] = useState(["Title"]);
   const [selectedData, setSelectedData] = useState(null);
   const [searchResults, setSearchResults] = useState([]);
+  const [commentaires, setCommentaires] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showcomm, setshowcomm] = useState(false);
   const [selectedItemForComment, setSelectedItemForComment] = useState(null);
+
+  //Nuage
+  const [cloudData,setCloudData] = useState([]);
+  const [isCloudVisible, setIsCloudVisible] = useState(true);
+
+  
+ const [filteredCloudData, setFilteredCloudData] = useState([]);
+
+
+ useEffect(() => {
+  
+
+  if (selectedProperty && cloudData.length) {
+    
+    setIsCloudVisible(false);
+
+    
+    
+    const filteredList = cloudData.filter(item => item.key === selectedProperty);
+    setFilteredCloudData(filteredList);
+      
+    setIsCloudVisible(true);  
+    
+
+      console.log("🎯 Changement de propriété → Filtrage:", selectedProperty, filteredList);
+    
+  } else {
+    setFilteredCloudData([]);
+    setIsCloudVisible(false);
+  }
+
+  
+}, [selectedProperty, cloudData]);
+
+
+
+
+
+  useEffect(() => {
+    fetch("/api/listes/weight")
+      .then((response) => response.json())
+      .then((data) => {
+        const formatted = data.map(item => ({
+          key: item.key,
+          value: item.value,
+          count: item.count,
+        }));
+        setCloudData(formatted);
+      })
+      
+      .catch((error) =>
+        console.error("Erreur lors de la récupération des poids:", error)
+      );
+  }, []);
 
   // affiche la liste des propriétés pour séléction
   useEffect(() => {
@@ -57,6 +115,24 @@ function BarreRechercheBDD(userFullName) {
     }
   }, [selectedProperty]);
 
+  useEffect(() => {
+    const fetchCommentaires = async () => {
+      if (!selectedItem?.properties?.Title) return;
+  
+      try {
+        const encodedTitle = encodeURIComponent(selectedItem.properties.Title);
+        const response = await fetch(`/api/listes/comms/${encodedTitle}`);
+        if (!response.ok) throw new Error("Erreur lors de la récupération des commentaires");
+        const data = await response.json();
+        setCommentaires(data);
+      } catch (error) {
+        console.error("Erreur de chargement des commentaires :", error);
+        setCommentaires([]);
+      }
+    };
+  
+    fetchCommentaires();
+  }, [selectedItem]);
   function filteredValues(values, word) {
     if (!word) return [];
     const wordLower = word.toLowerCase();
@@ -89,6 +165,7 @@ function BarreRechercheBDD(userFullName) {
         );
 
         setSearchResults(results.flat());
+        console.log(searchResults);
         setIsLoading(false);
       } else {
         setSearchResults([]);
@@ -101,6 +178,7 @@ function BarreRechercheBDD(userFullName) {
   // Tape dans l'api lorsque on voit les détails et affiche la donnée
   async function handleSearch(item) {
     try {
+      setshowcomm(false);
       if (item.properties) {
         setSelectedItem(item);
         setSelectedData(item.properties);
@@ -115,6 +193,16 @@ function BarreRechercheBDD(userFullName) {
     } catch (error) {
       console.error("Erreur:", error);
     }
+  }
+  function stringToColor(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const color = '#' + ((hash >> 24) & 0xFF).toString(16).padStart(2, '0') +
+                        ((hash >> 16) & 0xFF).toString(16).padStart(2, '0') +
+                        ((hash >> 8) & 0xFF).toString(16).padStart(2, '0');
+    return color.slice(0, 7); // Retourne une couleur hex valide
   }
 
   const handleExport = (item) => {
@@ -165,6 +253,23 @@ function BarreRechercheBDD(userFullName) {
       <div className="live-search-display p-4 max-w-4xl mx-auto">
         {/* Choix de la propriété */}
         <div className="mb-6">
+
+           <h3>Nuage de Mots</h3>
+              
+           <TagCloud
+            key={selectedProperty + JSON.stringify(filteredCloudData.map(tag => tag.value))}
+            minSize={12}
+            maxSize={35}
+            tags={filteredCloudData}
+            onClick={(tag) => {
+              setInputText(tag.value);
+            }}
+            className={`transition-opacity duration-500 ease-in-out ${isCloudVisible ? "opacity-100" : "opacity-0"}`}
+            />
+
+
+
+
           <label htmlFor="property-select" className="block mb-2 font-medium text-gray-700">
             Choisir une propriété :
           </label>
@@ -172,11 +277,13 @@ function BarreRechercheBDD(userFullName) {
             id="select-input"
             value={selectedProperty}
             onChange={(e) => {
+              console.log(filteredCloudData);
               setSelectedProperty(e.target.value);
               setSelectedItem(null);
               setSelectedData(null);
               setInputText("");
               setSearchResults([]);
+              console.log(e.target.value);
             }}
             className="p-2 border border-gray-300 rounded-md w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
@@ -274,10 +381,61 @@ function BarreRechercheBDD(userFullName) {
 
             {selectedData ? (
               <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
+                <div>
                 <h4 className="font-medium mb-2">Données complètes :</h4>
                 <pre className="text-sm text-gray-800 overflow-x-auto">
-                  {JSON.stringify(selectedData, null, 2)}
+                {selectedData && typeof selectedData === 'object' ? (
+                <table className="table-auto w-full border border-gray-300 mt-4">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="px-4 py-2 border text-left">Attribut</th>
+                      <th className="px-4 py-2 border text-left">Valeur</th>
+                      <th className="px-4 py-2 border text-right relative">
+                      <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                        <button 
+                        className="mode-toggle" 
+                        onClick={() => setIsTableOpen(!isTableOpen)}
+                       
+                      >
+                        {isTableOpen ? "Fermer" : "Ouvrir"}
+                      </button>
+                      </div>
+                      </th>
+                    </tr>
+                  </thead>
+                  {isTableOpen && (
+                    <tbody>
+                      {Object.entries(selectedData).map(([key, value], index) => (
+                        <tr key={index} className="hover:bg-gray-50">
+                          <td className="px-4 py-2 border font-medium"><strong>{key}</strong></td>
+                          <td className="px-4 py-2 border">
+                            {typeof value === "object" ? JSON.stringify(value) : String(value)}
+                          </td>
+                          <td className="px-4 py-2 border"></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  )}
+                </table>
+              ) : (
+                <p className="text-gray-500">Aucune donnée disponible</p>
+              )}
                 </pre>
+                </div>
+                <div>
+                <h4 className="font-medium mb-2">Commentaires :</h4>
+                {commentaires.length > 0 ? (
+                <ul>
+                  {commentaires.map((comm, index) => (
+                  <li key={index}>
+                  <strong  style={{ color: stringToColor(comm.user) }}>{comm.user}</strong> - {comm.data}
+                </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-500 text-sm">Aucun commentaire trouvé.</p>
+              )}
+                </div>
               </div>
             ) : (
               <p className="text-gray-500">Chargement des données...</p>
@@ -285,7 +443,7 @@ function BarreRechercheBDD(userFullName) {
           </div>
         )}
 
-        {/* Bloc commentaire */}
+        
         {showcomm && (
           <div className="mt-6 p-4 border rounded-lg bg-gray-50">
             <div className="flex justify-between items-center mb-4">

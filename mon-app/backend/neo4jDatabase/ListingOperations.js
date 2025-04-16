@@ -81,12 +81,12 @@ async function ListeCategories() {
         const result = await session.run(`
           MATCH (n:Donnee)
           WHERE n.Lieu IS NOT NULL
-          RETURN n.Lieu AS position
+          RETURN n AS data
                     
         `);  
     
         return result.records.map(record => ({
-          position: record.get('position'),
+          data: record.get('data'),
         }));
       } catch (error) {
         console.error('Erreur Neo4j:', error);
@@ -96,4 +96,82 @@ async function ListeCategories() {
       }
     };
 
-module.exports = {fetchDataFromValue,ListeCategories,ListeValues, getAllNodesWithPosition};
+    async function fetchWordWeight() {
+      const session = driver.session();
+      try {
+        const result = await session.run(`
+          MATCH (n:Donnee)
+UNWIND keys(n) AS key
+WITH n, key
+WHERE NOT toLower(key) CONTAINS 'createdby'
+  AND NOT toLower(key) CONTAINS 'lastmodifiedby'
+  AND NOT toLower(key) CONTAINS 'lastmodifiedat'
+  AND NOT toLower(key) CONTAINS 'isprivate'
+  AND NOT toLower(key) CONTAINS 'date_création'
+  AND NOT toLower(key) CONTAINS 'date_creation'
+  AND NOT toLower(key) CONTAINS 'description'
+WITH key, n[key] AS value
+WHERE value IS NOT NULL
+RETURN key, value
+
+        `);
+    
+        const valueCount = {};
+
+result.records.forEach(record => {
+  const key = record.get('key');
+  const rawValue = record.get('value');
+  const values = Array.isArray(rawValue) ? rawValue : [rawValue];
+
+  values.forEach(item => {
+    if (typeof item === 'string') {
+      const cleaned = item.trim();
+      if (cleaned.length > 0) {
+       
+        const propKey = `${key}:${cleaned}`;
+        valueCount[propKey] = (valueCount[propKey] || 0) + 1;
+      }
+    }
+  });
+});
+
+return Object.entries(valueCount)
+  .map(([keyValue, count]) => {
+    const [key, ...valueParts] = keyValue.split(':');
+    const value = valueParts.join(':'); 
+    return { key, value, count };
+  })
+
+  .sort((a, b) => b.count - a.count);
+      } catch (error) {
+        console.error('Erreur Neo4j:', error);
+        throw new Error('Erreur de récupération des poids des valeurs');
+      } finally {
+        await session.close();
+      }
+    };
+
+    async function getCommentariesByTitle(title) {
+      const session = driver.session();
+     try {
+        const result = await session.run(`
+          MATCH (d:Donnee)<-[:CONCERNE]-(s:Solution)<-[:A_ECRIT]-(u:Utilisateur)
+          WHERE d.Title = $title
+          RETURN s.Title AS solutionTitle, u.full_name AS auteur
+
+                    
+        `, {title});  
+    
+        return result.records.map(record => ({
+          data: record.get('solutionTitle'),
+          user: record.get('auteur'),
+        }));
+      } catch (error) {
+        console.error('Erreur Neo4j:', error);
+        throw new Error('Erreur de récupération des valeurs');
+      } finally {
+        await session.close();
+      }
+    };
+
+module.exports = {fetchWordWeight,fetchDataFromValue,ListeCategories,ListeValues, getAllNodesWithPosition, getCommentariesByTitle};
