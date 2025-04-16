@@ -69,10 +69,6 @@
 #### 4. **Export Data** 📥  
    - Select datasets → Choose *Export* → Download as CSV/Excel.  
 
-#### 5. **QGIS Integration** 🌍  
-   - Install the QGIS plugin → Configure platform URL in settings.  
-   - Sync datasets or submit feedback directly from QGIS.  
-
 ---
 
 ### ⚙️ Configuration  
@@ -93,8 +89,6 @@
 - **File Requirements**:  
   - Formats: CSV, GeoJSON, Excel.  
   - Max size: **500MB**.  
-- **Security**: Data encrypted with AES-256 🔒.  
-- **Backups**: Nightly backups to AWS S3.  
 
 ---
 
