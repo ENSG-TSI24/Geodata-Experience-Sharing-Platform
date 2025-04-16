@@ -38,11 +38,13 @@ Submit feedback, visualize relationships, and get AI-powered insights for geogra
 
 ---
 ## 🛠️ Technical Architecture
+   ```mermaid
 %%{init: {'theme': 'base', 'flowchart': {'curve': 'basis'}}}%%
 flowchart TD
     Frontend["🖥️ Frontend (React)"] -->|API Calls| Backend["🛠️ Backend (Express.js)"]
     Backend -->|Cypher Queries| Database["🗃️ Database (Neo4j)"]
     Backend -->|API Integration| AIAgent["🤖 AI Agent"]
+  ```
 
 
 - **Frontend**: React + Leaflet 
