@@ -75,6 +75,25 @@ async function ListeCategories() {
       }
     };
 
+    async function getAllNodesWithPosition() {
+      const session = driver.session();
+     try {
+        const result = await session.run(`
+          MATCH (n:Donnee)
+          WHERE n.Lieu IS NOT NULL
+          RETURN n.Lieu AS position
+                    
+        `);  
     
+        return result.records.map(record => ({
+          position: record.get('position'),
+        }));
+      } catch (error) {
+        console.error('Erreur Neo4j:', error);
+        throw new Error('Erreur de récupération des valeurs');
+      } finally {
+        await session.close();
+      }
+    };
 
-module.exports = {fetchDataFromValue,ListeCategories,ListeValues};
+module.exports = {fetchDataFromValue,ListeCategories,ListeValues, getAllNodesWithPosition};
