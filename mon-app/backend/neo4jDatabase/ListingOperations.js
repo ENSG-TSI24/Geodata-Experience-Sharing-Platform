@@ -81,12 +81,12 @@ async function ListeCategories() {
         const result = await session.run(`
           MATCH (n:Donnee)
           WHERE n.Lieu IS NOT NULL
-          RETURN n.Lieu AS position
+          RETURN n AS data
                     
         `);  
     
         return result.records.map(record => ({
-          position: record.get('position'),
+          data: record.get('data'),
         }));
       } catch (error) {
         console.error('Erreur Neo4j:', error);
@@ -96,4 +96,27 @@ async function ListeCategories() {
       }
     };
 
-module.exports = {fetchDataFromValue,ListeCategories,ListeValues, getAllNodesWithPosition};
+    async function getCommentariesByTitle(title) {
+      const session = driver.session();
+     try {
+        const result = await session.run(`
+          MATCH (d:Donnee)<-[:CONCERNE]-(s:Solution)<-[:A_ECRIT]-(u:Utilisateur)
+          WHERE d.Title = $title
+          RETURN s.Title AS solutionTitle, u.full_name AS auteur
+
+                    
+        `, {title});  
+    
+        return result.records.map(record => ({
+          data: record.get('solutionTitle'),
+          user: record.get('auteur'),
+        }));
+      } catch (error) {
+        console.error('Erreur Neo4j:', error);
+        throw new Error('Erreur de récupération des valeurs');
+      } finally {
+        await session.close();
+      }
+    };
+
+module.exports = {fetchDataFromValue,ListeCategories,ListeValues, getAllNodesWithPosition, getCommentariesByTitle};
