@@ -45,33 +45,38 @@ Submit feedback, visualize relationships, and get AI-powered insights for geogra
 flowchart TD
     Frontend["🖥️ Frontend (React)"] -->|API Calls| Backend["🛠️ Backend (Express.js)"]
     Backend -->|Cypher Queries| Database["🗃️ Database (Neo4j)"]
-    Backend -->|API Integration| AI["🤖 AI Service (GPT-4)"]
+    Backend -->|API Integration| AI Agent ["🤖 "]
 ```
 
-- **Frontend**: React + Material-UI + Recharts  
-- **Backend**: Express.js + Neo4j Driver + JWT Auth  
-- **Database**: Neo4j 4.4 (Docker deployment)  
-- **AI Service**: OpenAI GPT-4 API  
+- **Frontend**: React + Leaflet 
+- **Backend**: Express.js + Neo4j Driver
+- **Database**: Neo4j Relational Database (Docker deployment)  
+- **AI Service**: Chatbot that runs on OpenAI gpt-3.5-turbo
+- **Deployment**: Docker 
 ---
 ## 🚀 Quick Start  
 
 1. **Clone Repository**  
    ```bash
    git clone https://github.com/ENSG-TSI24/Geodata-Experience-Sharing-Platform.git
-   cd Geodata-Experience-Sharing-Platform
+   cd Geodata-Experience-Sharing-Platform/mon-app
    ```
 
 2. **Environment Setup**  
-   - Create a `.env` file in the root directory with required configurations (e.g., Neo4j credentials, OpenAI API key).  
+   - Create a `.env` file in the root directory with required configurations (e.g., Neo4j credentials, OpenAI API key). To have the password and API key contact us !
+    NEO4J_URI="neo4j+s://a3fd1456.databases.neo4j.io"
+    NEO4J_USER="neo4j"
+    NEO4J_PASSWORD=
+    OPENAI_API_KEY=
 
 3. **Docker Deployment**  
-   - **First Run or Updates**:  
+   - *If it's the first time you download the project*:  
      ```bash  
      sudo -s  # If permissions are needed  
-     docker-compose build --no-cache  # Clean rebuild  
-     docker-compose up  # Start services  
+     docker-compose build --no-cache   
+     docker-compose up 
      ```  
-   - **Subsequent Runs**:  
+   - *If you have already build the docker and just want to launch existing container*:  
      ```bash  
      docker-compose up  # Launch existing containers  
      ```  
@@ -84,7 +89,7 @@ flowchart TD
 
 5. **Stop Services**  
    ```bash  
-   docker-compose down --volumes --remove-orphans  # Clean shutdown  
+   docker-compose down --volumes --remove-orphans 
    ```  
 
 ---
@@ -93,84 +98,33 @@ flowchart TD
 
 ### 1. **Authentication** 🔑  
    - **Sign Up**:  
-     - Click "Register" → Fill in username, password, and email → Verify via email.  
+     - Click "Register" → Fill in username, password, organisation and email". If you chose an admin role, write down the purpose for your request and wait for approval. You can log is as an anonymous member. 
    - **Log In**:  
-     - Use credentials to access the platform.  
+     - Use credentials to access the platform, and select well your role.  
 
 ### 2. **Submit Feedback** 📤  
-   - Go to *Feedback* → Attach files (CSV/GeoJSON/Excel) → Add description.  
-   - **AI Tags**: GPT-4 generates tags automatically (e.g., `alignment`, `geometry`).  
+   - Go to *Feedback* → Add a description of the experience feedback regarding the geographic data you used.  
+   - You can also make use of the LLM power so as to generate and store metadata automatically from the Experience Feedback you write in human language without annotation.  
 
 ### 3. **Explore Data** 🔍  
-   - Use the **Knowledge Graph** tab to:  
+   - Use the **Recherche section** to:  
      - Visualize metadata connections.  
-     - Filter by tags, date, or dataset type.  
-   - Example Cypher query for relationships:  
-     ```cypher  
-     MATCH (d:Dataset)-[r:HAS_ISSUE]->(i:Issue) RETURN d, r, i  
-     ```  
-
+     - Filter by properties, date, and see the comments below.  
+   
 ### 4. **Export Data** 📥  
-   - Select datasets → Choose *Export* → Download as CSV/Excel.  
+   - Select datasets → Choose *Export* → Download as JSON.  
 
 ---
 
 ## ⚙️ Configuration  
 
-- **Neo4j Database**: Ensure it runs via Docker (see [Quick Start](#-quick-start)).  
-- **Environment Variables** (`.env`):  
-  ```  
-  NEO4J_URI=bolt://localhost:7687  
-  NEO4J_USER=neo4j  
-  NEO4J_PASSWORD=your_secure_password  
-  OPENAI_API_KEY=sk-your_openai_key  
-  ```  
-
----
-
----
-## 📆 Gantt Diagram
-```mermaid
-gantt
-    title Geodata Experience Sharing Platform Project Timeline (4 Members)
-    dateFormat  YYYY-MM-DD
-    axisFormat  %m-%d
-
-    section Planning & Setup
-    Project Kickoff & Requirement Analysis       :a1, 2024-03-18, 4d
-    Technology Stack Finalization               :a2, after a1, 3d
-    Database Schema Design (Neo4j)              :a3, after a2, 3d
-
-    section Frontend Development
-    UI/UX Design (React)                        :b1, 2024-03-25, 5d
-    Annotation Interface Implementation         :b2, after b1, 4d
-    Data Visualization Integration (Graph/Map)  :b3, after b2, 5d
-
-    section Backend Development
-    REST API Setup (Express.js)                 :c1, 2024-03-25, 4d
-    Knowledge Graph Logic (Neo4j Integration)   :c2, after c1, 6d
-    Metadata Export Module                      :c3, after c2, 3d
-
-    section Testing & Deployment
-    Docker Deployment (Optional)     :d2, after c3, 2d
-    Final Documentation & Handover              :d3, 2024-04-15, 2d
-
-    section Buffer Time
-    Buffer for Delays                           :e1, 2024-04-17, 1d
-```
+- **Neo4j Database**: Ensure the instance is valid' 
 ---
 
 ## 🆘 Support  
 
 Contact the team by opening an issue on [GitHub](https://github.com/ENSG-TSI24/Geodata-Experience-Sharing-Platform).  
 
---- 
-
-> **Pro Tip** 💡: Run `docker-compose down --volumes` before major config changes to avoid conflicts!  
-
----
-
-## 📜 License
 
 [MIT License](https://opensource.org/licenses/MIT)  
 Copyright (c) 2025 ENSG-TSI24
