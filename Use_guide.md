@@ -40,8 +40,7 @@
 | **📝 Feedback Management** | Submit/browse data feedback with **AI auto-tagging** (GPT-4) and issue tracking. |  
 | **🌐 Knowledge Graph**    | Neo4j-powered metadata network for visualizing complex geographic relationships. |  
 | **🤖 AI Assistance**      | Natural language Q&A and context-aware metadata suggestions.               |  
-| **🛠️ QGIS Integration**   | Sync datasets and submit feedback directly via QGIS plugin.                |  
-| **🔒 Role-Based Access**  | JWT authentication with roles: *User*, *Admin*, *Researcher*.              |  
+| **🔒 Role-Based Access**  | JWT authentication with roles: *Editeur*, *Admin*.              |  
 
 ---
 
