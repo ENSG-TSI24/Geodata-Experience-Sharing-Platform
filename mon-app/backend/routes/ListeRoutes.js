@@ -1,5 +1,5 @@
 const express = require('express');
-const { ListeCategories, ListeValues, fetchDataFromValue, getAllNodesWithPosition } = require('../neo4jDatabase/ListingOperations');
+const { ListeCategories, ListeValues, fetchDataFromValue, getAllNodesWithPosition, getCommentariesByTitle } = require('../neo4jDatabase/ListingOperations');
 
 const router = express.Router();
 
@@ -39,6 +39,16 @@ router.get('/values/:propriete/:value', async (req, res) => {
 router.get('/withposition', async (req, res) => {
   try {
     const data = await getAllNodesWithPosition();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/comms/:titre', async (req, res) => {
+  try {
+    const { titre } = req.params;
+    const data = await getCommentariesByTitle(titre);
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
