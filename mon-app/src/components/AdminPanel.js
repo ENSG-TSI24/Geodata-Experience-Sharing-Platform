@@ -5,6 +5,7 @@ import { FiMap, FiFileText, FiInfo, FiLogOut, FiMenu, FiX, FiSettings, FiEye, Fi
 import MyButtons from "./MyButtons"
 import AboutPage from "./AboutPage"
 import UserPermissions from "./UserPermissions"
+import MapRecherche from "./MapRecherche"
 import AIChatbot from "./AIChatbot"
 import "./AdminPanel.css"
 
@@ -18,6 +19,7 @@ const BarreRecherche = lazy(() => import("./BarreRechercheBDD"));
 function AdminPanel({ full_name, organization, fonction, onLogout }) {
   const [isMap, setIsMap] = useState(false)
   const [activeTab, setActiveTab] = useState("main")
+  const [isSearchMap, setIsSearchMap] = useState(false);
   const [globalDataset, setGlobalDataset] = useState([])
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [theme, setTheme] = useState("light")
@@ -148,13 +150,14 @@ function AdminPanel({ full_name, organization, fonction, onLogout }) {
                               )}
                             </button>
                           )}
-                          <button
+                          {viewMode === "search" ? (<button
                             className="mode-toggle"
-                            onClick={() => setIsMap(!isMap)}
+                            onClick={() => setIsSearchMap(!isSearchMap)}
                             aria-label={isMap ? "Passer en mode texte" : "Passer en mode carte"}
                           >
                             {isMap ? "Mode Texte" : "Mode Carte"}
                           </button>
+                          ):null}
                         </div>
                       </div>
                 {viewMode === "search" ? (
@@ -164,11 +167,15 @@ function AdminPanel({ full_name, organization, fonction, onLogout }) {
                       <h2 className="panel-title">Recherche</h2>
                     </div>
                     <Suspense fallback={<div className="loading">Chargement...</div>}>
-                      <BarreRecherche 
-                        userFullName={full_name} 
-                        userRole={fonction}
-                        isMap={isMap}
-                      />
+                    {isSearchMap ? (
+            <MapRecherche/>
+    ) : (
+      <BarreRecherche 
+        userFullName={full_name} 
+        userRole={fonction}
+        isMap={false}
+      />
+    )}
                     </Suspense>
                   </div>
                 ) : (
