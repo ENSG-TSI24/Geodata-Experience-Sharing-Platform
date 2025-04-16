@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { FiUser, FiHome, FiShield, FiInfo, FiLogIn, FiUserPlus } from "react-icons/fi"
 import { useNavigate } from "react-router-dom"
+import "./LoginForm.css"
 
 function LoginForm({ onLogin }) {
   const [nom, setNom] = useState("")

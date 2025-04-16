@@ -6,6 +6,7 @@ import MyButtons from "./MyButtons"
 import AboutPage from "./AboutPage"
 import UserPermissions from "./UserPermissions"
 import AIChatbot from "./AIChatbot"
+import "./AdminPanel.css"
 
 // Lazy load components that aren't needed immediately
 const MapAnnotator = lazy(() => import("./MapAnnotator"))
