@@ -96,4 +96,59 @@ async function ListeCategories() {
       }
     };
 
-module.exports = {fetchDataFromValue,ListeCategories,ListeValues, getAllNodesWithPosition};
+    async function fetchWordWeight() {
+      const session = driver.session();
+      try {
+        const result = await session.run(`
+          MATCH (n:Donnee)
+UNWIND keys(n) AS key
+WITH n, key
+WHERE NOT toLower(key) CONTAINS 'createdby'
+  AND NOT toLower(key) CONTAINS 'lastmodifiedby'
+  AND NOT toLower(key) CONTAINS 'lastmodifiedat'
+  AND NOT toLower(key) CONTAINS 'isprivate'
+  AND NOT toLower(key) CONTAINS 'date_création'
+  AND NOT toLower(key) CONTAINS 'date_creation'
+  AND NOT toLower(key) CONTAINS 'description'
+WITH key, n[key] AS value
+WHERE value IS NOT NULL
+RETURN key, value
+
+        `);
+    
+        const valueCount = {};
+
+result.records.forEach(record => {
+  const key = record.get('key');
+  const rawValue = record.get('value');
+  const values = Array.isArray(rawValue) ? rawValue : [rawValue];
+
+  values.forEach(item => {
+    if (typeof item === 'string') {
+      const cleaned = item.trim();
+      if (cleaned.length > 0) {
+       
+        const propKey = `${key}:${cleaned}`;
+        valueCount[propKey] = (valueCount[propKey] || 0) + 1;
+      }
+    }
+  });
+});
+
+return Object.entries(valueCount)
+  .map(([keyValue, count]) => {
+    const [key, ...valueParts] = keyValue.split(':');
+    const value = valueParts.join(':'); 
+    return { key, value, count };
+  })
+
+  .sort((a, b) => b.count - a.count);
+      } catch (error) {
+        console.error('Erreur Neo4j:', error);
+        throw new Error('Erreur de récupération des poids des valeurs');
+      } finally {
+        await session.close();
+      }
+    };
+
+module.exports = {fetchWordWeight,fetchDataFromValue,ListeCategories,ListeValues, getAllNodesWithPosition};

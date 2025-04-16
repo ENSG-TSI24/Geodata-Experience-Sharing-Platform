@@ -1,5 +1,5 @@
 const express = require('express');
-const { ListeCategories, ListeValues, fetchDataFromValue, getAllNodesWithPosition } = require('../neo4jDatabase/ListingOperations');
+const { ListeCategories, ListeValues, fetchDataFromValue, getAllNodesWithPosition, fetchWordWeight } = require('../neo4jDatabase/ListingOperations');
 
 const router = express.Router();
 
@@ -44,5 +44,18 @@ router.get('/withposition', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
+router.get('/weight', async (req, res) => {
+  try {
+    const weight = await fetchWordWeight();
+    res.json(weight);
+    console.log(weight);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+
+
 
 module.exports = router;
