@@ -1,0 +1,43 @@
+/* Registration Form */
+.step-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1rem;
+  }
+  
+  .step {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background-color: var(--light-gray);
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    transition: var(--transition);
+  }
+  
+  .step.active {
+    background-color: var(--primary-color);
+    color: white;
+  }
+  
+  .step-line {
+    height: 2px;
+    width: 2rem;
+    background-color: var(--border-color);
+    margin: 0 0.5rem;
+  }
+  
+  .step-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    color: var(--text-color);
+  }
+  
+  .form-step {
+    animation: fadeIn 0.3s ease-in-out;
+  }

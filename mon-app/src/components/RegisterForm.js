@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { FiUser, FiHome, FiShield, FiInfo, FiUserPlus, FiArrowLeft, FiCheck, FiPlus } from "react-icons/fi"
 import { useNavigate } from "react-router-dom"
-
+import "./RegisterForm.css"
 function RegisterForm() {
   const [step, setStep] = useState(1)
   const [nom, setNom] = useState("")
