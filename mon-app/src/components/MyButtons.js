@@ -3,36 +3,10 @@
 import { useState } from "react"
 import { FiUpload, FiDownload, FiAlertTriangle } from "react-icons/fi"
 
-function MyButtons({ canEdit, canDelete, userRole }) {
+function MyButtons({ canEdit, canDelete, userRole, onImportData }) {
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [exportType, setExportType] = useState("json")
   const [exportStatus, setExportStatus] = useState({ loading: false, error: null })
-
-  // Handle metadata import from file (admin and editeur can import)
-  const handleImport = () => {
-    if (!canDelete && userRole !== "editeur") return // Only admin and editeur can import
-
-    const input = document.createElement("input")
-    input.type = "file"
-    input.accept = ".json"
-    input.onchange = (e) => {
-      const file = e.target.files[0]
-      if (file) {
-        const reader = new FileReader()
-        reader.onload = (event) => {
-          try {
-            const data = JSON.parse(event.target.result)
-            // Here you would process the imported data
-            alert("Métadonnées importées avec succès!")
-          } catch (error) {
-            alert("Erreur d'importation: Format JSON invalide")
-          }
-        }
-        reader.readAsText(file)
-      }
-    }
-    input.click()
-  }
 
   // Handle metadata export to file (with role-based restrictions)
   const handleExport = () => {
@@ -171,13 +145,6 @@ function MyButtons({ canEdit, canDelete, userRole }) {
 
   return (
     <div className="button-group">
-      {(canDelete || userRole === "editeur") && (
-        <button className="button button-primary" onClick={handleImport} aria-label="Importer des métadonnées">
-          <FiUpload className="button-icon" />
-          <span>Importer</span>
-        </button>
-      )}
-
       {userRole !== "anonyme" && (
         <>
           {showConfirmation ? (
@@ -217,4 +184,3 @@ function MyButtons({ canEdit, canDelete, userRole }) {
 }
 
 export default MyButtons
-
