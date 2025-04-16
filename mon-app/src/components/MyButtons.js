@@ -8,59 +8,6 @@ function MyButtons({ canEdit, canDelete, userRole, onImportData }) {
   const [exportType, setExportType] = useState("json")
   const [exportStatus, setExportStatus] = useState({ loading: false, error: null })
 
-  // Handle metadata import from file (admin and editeur can import)
-  const handleImport = () => {
-    if (!canDelete && userRole !== "editeur") return
-  
-    const input = document.createElement("input")
-    input.type = "file"
-    input.accept = ".json"
-    input.onchange = (e) => {
-      const file = e.target.files[0]
-      if (file) {
-        const reader = new FileReader()
-        reader.onload = (event) => {
-          try {
-            console.log("Original file content:", event.target.result);
-            const data = JSON.parse(event.target.result);
-            console.log("Parsed data:", data);
-  
-            if (data && data.length > 0) {
-              const firstItem = data[0];
-              console.log("First item data:", firstItem);
-              
-              const title = firstItem?.Title || firstItem?.title || "";
-              
-              const text = firstItem?.Proprietees?.description || 
-                           firstItem?.Proprietes?.description || 
-                           firstItem?.Propriety?.description || 
-                           firstItem?.properties?.description ||
-                           firstItem?.Properties?.description ||
-                           firstItem?.description ||
-                           "";
-              
-              if (title && onImportData) {
-                onImportData({ title, text });
-                alert("Metadata imported successfully!");
-              } else if (!title) {
-                alert("Invalid data structure: Missing title in the imported file");
-              } else {
-                alert("Import function not available");
-              }
-            } else {
-              alert("No valid data found in the imported file");
-            }
-          } catch (error) {
-            console.error("Import error:", error);
-            alert("Import error: Invalid JSON format");
-          }
-        }
-        reader.readAsText(file)
-      }
-    }
-    input.click()
-  }
-
   // Handle metadata export to file (with role-based restrictions)
   const handleExport = () => {
     setExportStatus({ loading: true, error: null })
@@ -198,13 +145,6 @@ function MyButtons({ canEdit, canDelete, userRole, onImportData }) {
 
   return (
     <div className="button-group">
-      {(canDelete || userRole === "editeur") && (
-        <button className="button button-primary" onClick={handleImport} aria-label="Importer des métadonnées">
-          <FiUpload className="button-icon" />
-          <span>Importer</span>
-        </button>
-      )}
-
       {userRole !== "anonyme" && (
         <>
           {showConfirmation ? (
