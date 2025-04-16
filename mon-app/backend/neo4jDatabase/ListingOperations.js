@@ -81,12 +81,12 @@ async function ListeCategories() {
         const result = await session.run(`
           MATCH (n:Donnee)
           WHERE n.Lieu IS NOT NULL
-          RETURN n.Lieu AS position
+          RETURN n AS data
                     
         `);  
     
         return result.records.map(record => ({
-          position: record.get('position'),
+          data: record.get('data'),
         }));
       } catch (error) {
         console.error('Erreur Neo4j:', error);
