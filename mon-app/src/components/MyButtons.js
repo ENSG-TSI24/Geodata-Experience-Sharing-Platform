@@ -3,15 +3,15 @@
 import { useState } from "react"
 import { FiUpload, FiDownload, FiAlertTriangle } from "react-icons/fi"
 
-function MyButtons({ canEdit, canDelete, userRole }) {
+function MyButtons({ canEdit, canDelete, userRole, onImportData }) {
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [exportType, setExportType] = useState("json")
   const [exportStatus, setExportStatus] = useState({ loading: false, error: null })
 
   // Handle metadata import from file (admin and editeur can import)
   const handleImport = () => {
-    if (!canDelete && userRole !== "editeur") return // Only admin and editeur can import
-
+    if (!canDelete && userRole !== "editeur") return
+  
     const input = document.createElement("input")
     input.type = "file"
     input.accept = ".json"
@@ -21,11 +21,38 @@ function MyButtons({ canEdit, canDelete, userRole }) {
         const reader = new FileReader()
         reader.onload = (event) => {
           try {
-            const data = JSON.parse(event.target.result)
-            // Here you would process the imported data
-            alert("Métadonnées importées avec succès!")
+            console.log("Original file content:", event.target.result);
+            const data = JSON.parse(event.target.result);
+            console.log("Parsed data:", data);
+  
+            if (data && data.length > 0) {
+              const firstItem = data[0];
+              console.log("First item data:", firstItem);
+              
+              const title = firstItem?.Title || firstItem?.title || "";
+              
+              const text = firstItem?.Proprietees?.description || 
+                           firstItem?.Proprietes?.description || 
+                           firstItem?.Propriety?.description || 
+                           firstItem?.properties?.description ||
+                           firstItem?.Properties?.description ||
+                           firstItem?.description ||
+                           "";
+              
+              if (title && onImportData) {
+                onImportData({ title, text });
+                alert("Metadata imported successfully!");
+              } else if (!title) {
+                alert("Invalid data structure: Missing title in the imported file");
+              } else {
+                alert("Import function not available");
+              }
+            } else {
+              alert("No valid data found in the imported file");
+            }
           } catch (error) {
-            alert("Erreur d'importation: Format JSON invalide")
+            console.error("Import error:", error);
+            alert("Import error: Invalid JSON format");
           }
         }
         reader.readAsText(file)
@@ -217,4 +244,3 @@ function MyButtons({ canEdit, canDelete, userRole }) {
 }
 
 export default MyButtons
-

@@ -203,7 +203,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
           setValues(data);
           setShowValuesDropdown(true);
         })
-        .catch(error => console.error("Erreur de récupération des valeurs:", error));
+        .catch(error => console.error("Error fetching values:", error));
   
      
       setTimeout(() => {
@@ -488,7 +488,15 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
             Réinitialiser
           </button>
           
-         <ImportExport globalDataset={globalDataset} setGlobalDataset={setGlobalDataset}></ImportExport>
+          <ImportExport 
+            globalDataset={globalDataset}
+            setGlobalDataset={setGlobalDataset}
+            onImportData={({ title, text }) => { 
+              setTitle(title);
+              setText(text);
+              console.log("Imported data in TextAnnotator:", title, text);
+            }}
+          />
         </div>
         
         {showDropdown && (
