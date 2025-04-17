@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { FiArrowDownCircle, FiDownload, FiUpload } from "react-icons/fi";
 import ImportExport from './ImportExport';
 import MapAdd from './MapAdd';
-
+import "./TextAnnotator.css";
 function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   const [text, setText] = useState('');
   const [title, setTitle] = useState('');

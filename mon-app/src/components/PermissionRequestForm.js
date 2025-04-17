@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { FiArrowUp, FiInfo, FiSend } from "react-icons/fi"
-
+import "./PermissionRequestForm.css"
 function PermissionRequestForm({ currentRole, full_name, onRequestSent }) {
   const [requestedRole, setRequestedRole] = useState("")
   const [reason, setReason] = useState("")
