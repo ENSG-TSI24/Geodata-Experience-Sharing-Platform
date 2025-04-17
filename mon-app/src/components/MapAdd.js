@@ -4,7 +4,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "re
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "leaflet-geosearch/dist/geosearch.css";
-import { GeoSearchControl, OpenStreetMapProvider } from "leaflet-geosearch";
+import "./MapAdd.css"
+;import { GeoSearchControl, OpenStreetMapProvider } from "leaflet-geosearch";
 
 function MapAdd({ draftData, onComplete, onCancel }) {
   const [position, setPosition] = useState(null);
@@ -97,17 +98,8 @@ function MapAdd({ draftData, onComplete, onCancel }) {
         <SearchControl />
       </MapContainer>
 
-      <div
-        style={{
-          position: "absolute",
-          top: "10%",
-          left: "5%",
-          zIndex: 1000,
-          backgroundColor: "white",
-          padding: "10px",
-          borderRadius: "5px",
-          boxShadow: "0 0 10px rgba(0,0,0,0.2)",
-        }}
+      <div className="ajout-point"
+       
       >
         <h3>Ajouter une position</h3>
         <p>Cliquez sur la carte ou utilisez la recherche</p>
@@ -120,20 +112,8 @@ function MapAdd({ draftData, onComplete, onCancel }) {
         )}
       </div>
 
-      <button
-        onClick={onCancel}
-        style={{
-          position: "absolute",
-          top: "20px",
-          right: "20px",
-          zIndex: 1000,
-          padding: "10px",
-          backgroundColor: "red",
-          border: "1px solid #ccc",
-          borderRadius: "5px",
-          cursor: "pointer",
-        }}
-      >
+      <button className="annuler"
+        onClick={onCancel}>
         Annuler
       </button>
     </div>

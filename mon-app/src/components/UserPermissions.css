@@ -105,4 +105,21 @@
     color: var(--danger-color);
   }
   
+  .permission-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    background-color: var(--light-gray);
+    border-radius: var(--radius-sm);
+    margin-bottom: 2rem;
+  }
   
+  .permission-info .info-icon {
+    color: var(--secondary-color);
+  }
+
+  
+body.dark .permission-request {
+  background-color: var(--primary-light);
+}
