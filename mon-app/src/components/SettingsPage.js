@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { FiSettings, FiUsers, FiTag, FiSave, FiEdit, FiTrash2, FiLock, FiAlertTriangle } from "react-icons/fi"
 import UserPermissions from "./UserPermissions"
-
+import "./SettingsPage.css"
 function SettingsPage() {
   const [activeTab, setActiveTab] = useState("users")
   const [tags, setTags] = useState([

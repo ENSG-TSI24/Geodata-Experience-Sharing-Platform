@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { FiArrowDownCircle, FiDownload, FiUpload } from "react-icons/fi";
 import ImportExport from './ImportExport';
 import MapAdd from './MapAdd';
-
+import "./TextAnnotator.css";
 function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   const [text, setText] = useState('');
   const [title, setTitle] = useState('');
@@ -32,8 +32,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   
   const textAreaRef = useRef(null);
   const previewRef = useRef(null);
-  const containerRef = useRef(null);
-  
+
 
   useEffect(() => {
     fetch('/api/listes/categories')
@@ -392,7 +391,7 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
   };
 
   return (
-    <div ref={containerRef}>
+    <div>
       <div id="entete-annot">
         <h2>Créer un retour d'experience</h2>
         <FiArrowDownCircle size={50} className="button-icon" id="deplie" onClick={HideDiv}></FiArrowDownCircle>
@@ -421,7 +420,6 @@ function TextAnnotator({ globalDataset, setGlobalDataset, userFullName }) {
         
         <div className="text-editor-container"  style={{
               width: '100%',
-              maxWidth: '700px',
               margin: 0
             }}>
           

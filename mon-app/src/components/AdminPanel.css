@@ -5,12 +5,6 @@
     margin-bottom: 1rem;
   }
   
-  @media (min-width: 992px) {
-    .panel-container {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-  
   .panel {
     background-color: white;
     border-radius: var(--radius-md);

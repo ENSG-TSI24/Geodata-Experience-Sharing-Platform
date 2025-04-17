@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { FiArrowRight, FiX, FiMap, FiFileText, FiSettings, FiUsers, FiDatabase } from "react-icons/fi"
-
+import "./OnboardingTutorial.css"
 function OnboardingTutorial({ userName, userRole, onComplete }) {
   const [currentStep, setCurrentStep] = useState(0)
 
