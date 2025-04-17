@@ -189,24 +189,7 @@ function AdminPanel({ full_name, organization, fonction, onLogout }) {
                       </Suspense>
                     </div>
           
-                    <div className="panel">
-                      <div className="panel-header">
-                        <h2 className="panel-title">Aperçu des Données</h2>
-                        {canDelete && viewMode === "edit" && (
-                          <button
-                            className="button button-secondary"
-                            onClick={() => setGlobalDataset([])}
-                            aria-label="Effacer les données"
-                            disabled={globalDataset.length === 0}
-                          >
-                            Effacer
-                          </button>
-                        )}
-                      </div>
-                      <div className="json-display">
-                        <pre>{JSON.stringify(globalDataset, null, 2)}</pre>
-                      </div>
-                    </div>
+                    
                   </div>
 
                 )}
