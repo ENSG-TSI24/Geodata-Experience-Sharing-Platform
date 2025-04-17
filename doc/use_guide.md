@@ -43,7 +43,7 @@
 
 | Feature                | Description                                                                 |  
 |------------------------|-----------------------------------------------------------------------------|  
-| **📝 Feedback Management** | Submit/browse data feedback with **AI auto-tagging** (GPT-4) and issue tracking. |  
+| **📝 Feedback Management** | Submit/browse data feedback with **AI auto-tagging** (GPT-3) and issue tracking. |  
 | **🌐 Knowledge Graph**    | Neo4j-powered metadata network for visualizing complex geographic relationships. |  
 | **🤖 AI Assistance**      | Natural language Q&A and context-aware metadata suggestions.               |  
 | **🔒 Role-Based Access**  | JWT authentication with roles: *Editeur*, *Admin*.              |  
@@ -64,8 +64,8 @@
      - ![alt text](img/login.png)
 
 #### 2. **Submit Feedback** 📤  
-   - Go to *Feedback* → Attach files (CSV/GeoJSON/Excel) → Add description.  
-   - **AI Tags**: GPT-4 generates tags automatically (e.g., `alignment`, `geometry`).  
+   - Go to *Feedback* → Add description.  
+   - **AI Tags**: GPT-3 generates tags automatically (e.g., `alignment`, `geometry`).  
 
 #### 3. **Explore Data** 🔍  
    - Use the **Knowledge Graph** tab to:  
@@ -77,7 +77,7 @@
      ```  
 
 #### 4. **Export Data** 📥  
-   - Select datasets → Choose *Export* → Download as CSV/Excel.  
+   - Select datasets → Choose *Export* → Download as .JSON.  
 
 
 ---
